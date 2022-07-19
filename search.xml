@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search> 
+  
+  
+    
+    <entry>
+      <title>GBA的軟體中斷與其相對應的處理</title>
+      <link href="/2022/07/19/hardirq/"/>
+      <url>/2022/07/19/hardirq/</url>
+      
+        <content type="html"><![CDATA[<p><img src="https://i.imgur.com/t0NzpK9.jpg" alt="cover"></p><p>GBA所使用的CPU ARM7TDMI要觸發中斷基本上有硬體中斷與軟體中斷兩種手段，兩種中斷的運作機制部份相似但在關鍵部份還是有所差異，若要正確模擬GBA的中斷就必須要將這兩種中斷的運作機制都搞清楚才行</p><p>換句話說，關於GBA的中斷沒有打模糊仗的空間，該讀的Spec就是要讀，該想的問題就是要想</p><p>本文會先就軟體中斷的部份作解說，硬體中斷會在另外一篇文章作描述</p><span id="more"></span><h2 id="軟體中斷-SWI"><a href="#軟體中斷-SWI" class="headerlink" title="軟體中斷(SWI)"></a>軟體中斷(SWI)</h2><p><img src="https://i.imgur.com/E38ETY0.png"><br>軟體中斷，顧名思義就是透過軟體觸發的中斷，更精確的說法是透過SWI指令所造成的一連串CPU Mode切換與Program Counter(PC)跳轉，大致上可以分解為以下數個步驟：</p><ol><li>切換CPU Operating mode到Supervisor(SVC)下，並將目前mode的CPSR保存到SPSR_svc，在這一步之後所有被操作的暫存器皆為svc專屬的bank(從datasheet的角度來講就是 <strong>_svc結尾的register</strong> )</li><li>將中斷結束後需要被執行的下一條指令(也就是PC - instructionLength)放入R14_svc(LR)</li><li>無論目前的CPU mode為何，一律切換CPU mode到ARM mode</li><li>將PC指定為中斷向量中軟體中斷的記憶體位置，依照慣例為0x08，緊接著重新填充管線</li><li>為了防止執行軟體中斷的同時硬體中斷也被觸發，CPSR I bit(IRQ disable bit)也會在指令的最後被set</li></ol><p>大致上SWI的工作流程我們可以從cycle table來看出個大概：<br><img src="https://i.imgur.com/WrTQhAi.png"><br>Xn指的就是中斷向量的位置，值得一提的是即便最終管線有被重新填充，在指令的一開始我們還是有做instruction fetch，為了不要算錯cpu cycle，我們還是要針對PC + 2L所在的記憶體區段計算正確的N Cycle加到模擬器的cycle counter上</p><p>對了，後面會提的硬體中斷(IRQ)基本上也是類似的套路，直接將邏輯抽出來變成一個function是一個不錯的選擇</p><h3 id="軟體中斷的跳轉與實際運作"><a href="#軟體中斷的跳轉與實際運作" class="headerlink" title="軟體中斷的跳轉與實際運作"></a>軟體中斷的跳轉與實際運作</h3><p>講完了軟體中斷的進入，接下來是中間運作的機制:</p><ol><li>在CPU跳轉到0x08之後會看到一個branch指令，這次跳轉才會跳到BIOS中負責決定該去那一個handler的handler上(依照官方BIOS的設計，位置在0x140）</li><li>透過讀取lr的方式取得剛剛很可憐，被CPU當成塑膠的comment field，並透過位於0x1c8的swi_handler_table作跳轉</li><li>最後透過bx r12進入正確的handler</li></ol><p>要注意的一點是，以上只是針對任天堂官方BIOS做了一個粗略的解釋，我省略了不少內容，因為這一個部份的邏輯只要指令實作正確，基本上模擬器層不需要多加擔心，不過我強烈建議一定要去看一下這一部份的<a href="https://github.com/camthesaxman/gba_bios/blob/master/asm/bios.s">反組譯</a></p><h3 id="軟體中斷的結束與狀態恢復"><a href="#軟體中斷的結束與狀態恢復" class="headerlink" title="軟體中斷的結束與狀態恢復"></a>軟體中斷的結束與狀態恢復</h3><p>最後當中斷結束時，我們必須要還原到中斷前的狀態:</p><ol><li>GBA BIOS在執行軟體中斷時，會切換到system mode下(SVC-&gt;SYS)，在中斷結束時會切換回SVC</li><li>切換回SVC bank之後，從stack上取得中斷前的CPSR,放入SPSR</li><li>最後使用movs將LR寫回PC，mov指令當S bit set且dst為PC時會順帶將SPSR寫回CPSR，因此系統將會回復到中斷前的狀態，並重新填充管線</li></ol><p><img src="https://i.imgur.com/oZRyhLp.png"></p><p>我們可以發現GBA BIOS的確有遵照著ARM7TDMI Datasheet回復中斷前的狀態(見SWI Return Instruction一欄)</p><h3 id="小結"><a href="#小結" class="headerlink" title="小結"></a>小結</h3><p>中斷處理一直以來在模擬器實作上都是一個棘手的問題，因為其牽涉到CPU本身的指令實做與記憶體存取功能兩者是否正確(換言之，今天有bug發生你不太好釐清是誰有錯)</p><p>當CPU與週邊裝置開始連動時(LCD Joypad audio…..)問題會變得更加複雜，因此強烈建議要做好測試，方便你後續釐清問題</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> emulator </tag>
+            
+            <tag> ARM </tag>
+            
+            <tag> system programming </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+  
+  
+</search>
