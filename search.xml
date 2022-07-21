@@ -4,6 +4,29 @@
   
     
     <entry>
+      <title>GBA圖形處理邏輯模擬 (一)</title>
+      <link href="/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/"/>
+      <url>/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/</url>
+      
+        <content type="html"><![CDATA[<p><img src="https://i.imgur.com/SNkM4rS.jpg" alt="cover"></p><p>GBA模擬器的開發之路，如果說CPU部分是思考”我到底該怎麼做才對”，那圖形的部分就會是”我到底要怎麼做才會<em><strong>快</strong></em>“</p><p>本系列文將會把重點聚焦在如何正確的實作一個GBA的圖形系統模擬函式庫，並提出一些手法來提升模擬的效率</p><span id="more"></span><h2 id="GBA圖形系統規格"><a href="#GBA圖形系統規格" class="headerlink" title="GBA圖形系統規格"></a>GBA圖形系統規格</h2><p>相較於近代的主機都普遍配有GPU來負責圖形渲染工作，GBA也有一塊獨立於CPU的處理邏輯負責圖形工作，也就是PPU(Pixel Processing Unit)</p><p>我們可以先來看一下PPU主要提供那些圖形處理功能:</p><ol><li>輸出畫面為240*160 pixels</li><li>色彩格式為RGB555</li><li>具有以下兩種渲染模式:<ul><li>Tile based: 基於利用尺寸為8*8的tile組合畫面，具有渲染速度快，還可以利用硬體仿射變換功能</li><li>Bitmap based: 直接由CPU將圖形資料以Pixel為單位寫入VRAM，自由度較高但效率差，須妥善利用DMA來實作</li></ul></li><li>最大支援128個Sprites於螢幕上顯示</li><li>支援數種圖形特效:<ul><li>Rotation&#x2F;Scaling </li><li>alpha blending</li><li>fade-in&#x2F;out</li><li>mosaic</li><li>window</li></ul></li></ol><h2 id="記憶體區段"><a href="#記憶體區段" class="headerlink" title="記憶體區段"></a>記憶體區段</h2><p>PPU的工作記憶體位於0x0500’0000~0x07ff’ffff，不同的段落具有不同的用途，描述如下:</p><p>![memory map](<a href="https://i.imgur.com/X7AeN95.png">https://i.imgur.com/X7AeN95.png</a> &#x3D;500x)</p><ol><li><p>Palette memory: 0x0500’0000 ~ 0x0500’03ff</p><ul><li>功用為調色盤，一分為二，前半段為背景專用，後半段為OBJ使用</li><li>各具有256色，皆為RGB555格式</li><li>Bus為16 bit</li></ul></li><li><p>Video RAM(VRAM): 0x0600’0000 ~ 0x0601’7fff</p><ul><li>圖形系統的主記憶體，內容會根據繪圖模式有所不同，後面會詳述</li><li>Bus為16 bit</li></ul></li><li><p>OBJ Attributes(OAM): 0x0700’0000 ~ 0x0700’03ff</p><ul><li>用於描述各Sprite的屬性，以及Sprite在作仿射變換時所使用的矩陣內容</li><li>Bus為<strong>32 bit</strong></li></ul></li></ol><p>:::warning<br>聰明的小吉們應該有注意到一件事，我們在上面提到的address為0x0500’0000~0x07ff’ffff</p><p>但是下面再說明功能的時候，描述的範圍只有一部分，那剩下沒有涵蓋到(途中的黑色部分)的部分到底有沒有用???</p><p>這裡就必須要提及GBA系統的<a href="https://www.problemkaputt.de/gbatek.htm#gbaunpredictablethings">Undefined behavior</a>，其中的Memory mirror章節有提到GBA硬體的Bus在面對這些奇怪的R&#x2F;W時會有那些行為</p><p>具體模擬的細節我會在MMU相關的文章內作說明<br>:::</p><h2 id="開發環境"><a href="#開發環境" class="headerlink" title="開發環境"></a>開發環境</h2><p>我們的目標是要設計一個負責繪製GBA遊戲畫面的library，而非完全地將邏輯內嵌至模擬器主程式內，所以為了讓我們可以在沒有模擬除了PPU以外的功能的狀態下也能夠對PPU進行debug，我們勢必要開發一個前端，去調用PPU library所開出的介面來產生畫面</p><p>重點來了，阿你就沒有模擬整個系統，PPU怎麼會知道要繪製什麼東西???</p><p>![pic](<a href="https://i.imgur.com/7AER30I.png">https://i.imgur.com/7AER30I.png</a> &#x3D;500x)</p><p>而問題的答案也很簡單，找另外一個模擬器，直接去dump他的memory再寫進我們的PPU memory即可</p><p>有一個除錯器<a href="https://problemkaputt.de/gba.htm">NO$GBA</a>可以幫我們做到這件事情，我們在後續的開發流程也會持續的使用這個工具來協助我們釐清問題</p><h2 id="模擬流程"><a href="#模擬流程" class="headerlink" title="模擬流程"></a>模擬流程</h2><p>上面的說明中我有特別提到PPU在GBA系統中扮演的角色類似於我們現代電腦系統的GPU，但是其工作原理其實與GPU差異很大</p><p>現在的GPU基本上擅長一次處理大量的頂點或貼圖資料，但GBA的繪製流程是以scanline為單位，一條一條畫，同時繪圖狀態會根據H-Blank與V-Blank作變化</p><p>因此，我們並不會直接就利用GPU來繪製我們模擬器的遊戲畫面，而是先行使用CPU在main memory上產生出pixel format為RGB555的frame buffer後，緊接著一次做完整個畫面的RGB555 to RGBA8888的轉換，最後一步才是透過ImGUI把buffer的內容轉成texture，交由GPU渲染。</p>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> GBA </tag>
+            
+            <tag> emulator </tag>
+            
+            <tag> graphics </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>GBA的軟體中斷與其相對應的處理</title>
       <link href="/2022/07/19/hardirq/"/>
       <url>/2022/07/19/hardirq/</url>
@@ -13,6 +36,8 @@
       
       
         <tags>
+            
+            <tag> GBA </tag>
             
             <tag> emulator </tag>
             
