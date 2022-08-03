@@ -1,0 +1,237 @@
+<!DOCTYPE html><html class="appearance-auto" lang="en"><head><meta charset="UTF-8"><title>GBA圖形處理邏輯模擬 - Background Map</title><meta name="description" content="compilation terminated."><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/images/favicon.png"><link rel="stylesheet" href="/style/common/bulma.css"><link rel="stylesheet" href="/style/base.css"><link rel="stylesheet" href="/style/common/helper.css"><script src="/js/common.js"></script><link rel="stylesheet" href="/style/post.css"><link rel="stylesheet" href="/style/themes/highlight-theme-light.css"><script src="/js/highlight.pack.js"></script><meta name="description" content="
+
+cover
+
+GBA的VRAM中有數塊特殊的區域用來描述在一個BG中如何排列tile，我們將其稱呼為BG
+map memory，本文將會詳細說明其格式與特點
+
+Map data format
+Map
+data內部紀錄了渲染一塊tile所需要知道的資訊，其格式根據BG為Text或者Affine會有所不同:
+
+Text BG
+
+欄位功能描述如下:
+
+Character name
+
+雖然叫做name，但實際上是一個offset，當你從BG_CNT上計算出tile block
+base之後，假設BG_CNT上標明這是一個4bpp tile，則此map data所對應的tile
+data的address為:
+base block addr + chara. name * 0.."><meta name="generator" content="Hexo 6.2.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style><link rel="alternate" href="/atom.xml" title="黃爸爸狗園" type="application/atom+xml">
+</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/">0rzgg's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><div class="is-full-height" id="postTopic"><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">GBA圖形處理邏輯模擬 - Background Map</p><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">Click back to the top</p></div></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></header><main><main class="container is-max-widescreen content section post-page pt-4 px-4"><div class="columns is-flex-desktop is-justify-content-center is-flex-direction-row-reverse"><div class="column is-3 is-hidden-mobile"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#map-data-format"><span class="toc-text">Map data format</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#virtual-screen"><span class="toc-text">Virtual screen</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#address-formula"><span class="toc-text">Address formula</span></a></li></ol></div><div class="column is-9"><header class="my-4"><a href="/tags/GBA"><i class="tag post-item-tag">GBA</i></a><a href="/tags/emulator"><i class="tag post-item-tag">emulator</i></a><a href="/tags/graphics"><i class="tag post-item-tag">graphics</i></a></header><h1 class="mt-0 mb-1 is-family-serif" id="postTitle">GBA圖形處理邏輯模擬 - Background Map</h1><time class="has-text-grey" datetime="2022-08-03T16:10:00.000Z">2022-08-04</time><article class="mt-2 post-content"><figure>
+<img src="https://i.imgur.com/SNkM4rS.jpg" alt="cover">
+<figcaption aria-hidden="true">cover</figcaption>
+</figure>
+<p>GBA的VRAM中有數塊特殊的區域用來描述在一個BG中如何排列tile，我們將其稱呼為BG
+map memory，本文將會詳細說明其格式與特點</p>
+<span id="more"></span>
+<h2 id="map-data-format">Map data format</h2>
+<p>Map
+data內部紀錄了渲染一塊tile所需要知道的資訊，其格式根據BG為Text或者Affine會有所不同:</p>
+<ul>
+<li><p>Text BG</p>
+<p><img src="https://i.imgur.com/QSCzFdY.png"></p>
+<p>欄位功能描述如下:</p>
+<ul>
+<li>Character name
+<ul>
+<li>雖然叫做name，但實際上是一個offset，當你從BG_CNT上計算出tile block
+base之後，假設BG_CNT上標明這是一個4bpp tile，則此map data所對應的tile
+data的address為:</li>
+<li>base block addr + chara. name * 0x20(4bpp的一個完整tile size)</li>
+</ul></li>
+<li>假若是8bpp，則tile data會位於
+<ul>
+<li>base block addr + chara. name * 0x40(8bpp的一個完整tile size)</li>
+</ul></li>
+<li>有關tile data詳見<a href="/ZSQzSQKBTDWp4Rtmo9Vlpw">GBA圖形處理邏輯模擬 - Tile
+format</a></li>
+</ul></li>
+<li><p>Affine BG</p>
+<p><img src="https://i.imgur.com/wVb3Wf9.png"></p>
+<p>對，沒錯，真的就只有Character name，Affine
+BG的tile是強制256色的，考慮到Affine BG是利用仿射矩陣直接將screen
+pixel映射到map memory上，這樣的設計是最合理的</p>
+<ul>
+<li>因為tile一定是0x40，所以tile data的位置算法就是8bpp算法</li>
+</ul></li>
+<li><p>Horizontal flip flag</p>
+<ul>
+<li><p>此tile在渲染時是否要左右顛倒，我這裡是直接將讀出來的tile
+data做inverse</p></li>
+<li><p>考慮tile是4bpp的情況 ```cpp= if (xInverse) { // Swap the nibbles
+of each byte. buf = (buf &amp; 0x0F0F0F0F) &lt;&lt; 4 | (buf &amp;
+0xF0F0F0F0) &gt;&gt; 4;</p>
+<pre><code>  // Swap the bytes of each byte pair.
+  buf = (buf &amp; 0x00FF00FF) &lt;&lt; 8
+      | (buf &amp; 0xFF00FF00) &gt;&gt; 8;
+
+  // Swap the byte pairs.
+  buf = (buf &amp; 0x0000FFFF) &lt;&lt; 16
+      | (buf &amp; 0xFFFF0000) &gt;&gt; 16;</code></pre>
+<p>} // if ```</p></li>
+<li><p>8bpp會比較簡單 ```cpp= if (xInverse) { // Swap the bytes of each
+byte pair. buf = (buf &amp; 0x00FF00FF) &lt;&lt; 8 | (buf &amp;
+0xFF00FF00) &gt;&gt; 8;</p>
+<pre><code>  // Swap the byte pairs.
+  buf = (buf &amp; 0x0000FFFF) &lt;&lt; 16
+      | (buf &amp; 0xFFFF0000) &gt;&gt; 16;</code></pre>
+<p>} // if ```</p></li>
+</ul></li>
+<li><p>Vertical flip flag</p>
+<ul>
+<li>此tile在渲染時是否要上下顛倒</li>
+</ul></li>
+<li><p>Color palette</p>
+<ul>
+<li>如果BG_CNT有聲明是4bpp，則最後tile在繪製時所參考的palette
+number就會是這個欄位所描述的</li>
+<li>你可以把此欄位理解成row number，假設palette
+number是4，那tile就會變成全黑(因為tile 4所有16色都是黑色) <img src="https://i.imgur.com/AZwMSiI.png"></li>
+</ul></li>
+</ul>
+<h2 id="virtual-screen">Virtual screen</h2>
+<p>Map memory基本上就是一塊由map
+data以二維排列而成的記憶體區塊，我們可以回顧一下這張表格:</p>
+<p><img src="https://i.imgur.com/MkrrczV.png"></p>
+<p>其中我們可以注意到<strong>Character format BG
+screen</strong>下有一個size的欄位，裏頭描述幾種螢幕大小組合，但可以確定的是都與我們所知道的GBA螢幕大小240*160不同</p>
+<p>這就是所謂的Virtual
+screen機制，我們可以把他想像成我們利用一個240*160的取景視窗，在一個很大的虛構區域內移動，接下來我們要來討論兩個重點:
+1. 虛構區域的大小 - 我們能夠移動的虛構區域大小是依靠BG_CNT中的Screen
+size控制的，其大小如下表所述: <img src="https://i.imgur.com/92fnJAs.png"> -
+圖表中明確提到了Text/Affine的狀態下，map data的尺寸與記憶體占用皆不同 2.
+如何移動可視範圍 - 我們在確認Virtual
+screen的大小後，下一步自然就是要把取景範圍移動到我們想要的地方，這一個步驟在Text
+BG與Affine BG下的操作方式並不相同: - Text BG:
+我們需要調整HOFS以及VOFS兩個register來移動取景範圍的左上角座標，如果這兩個暫存器的數值超過的virtual
+screen的尺寸的話，真正對應到的數值將會被 %screen size <img src="https://i.imgur.com/AjAo0YT.png"></p>
+<pre><code>    不同的Screen size，移動時看起來會像是這樣
+    
+    ![](https://i.imgur.com/OnPul00.png)
+    
+    - Affine BG:Affine模式下是直接依靠仿射矩陣來決定每一個螢幕上的pixel對應到的tile data，因此並不需要依靠HOFS以及VOFS，詳細請見[GBA圖形處理邏輯模擬 - Affine background](/CwJ9l02WSeqwf7bM_Io5Ew)</code></pre>
+<h2 id="address-formula">Address formula</h2>
+<p>最後附上一個Text BG計算某一個screen
+pixel，其所在的tile對應到那一個map data的計算公式: - Physical screen X,
+Y = Sx, Sy - Virtual Screen Width, Height = Vw, Vh - Viewing area X =
+(Sx + HOFS) % Vw = S_vx, Viewing area Y = (Sy + VOFS) % Vh = S_vy -
+Screen Base Block in BG_CNT = Sb - map data address = 0x0600'0000 +
+(0x800 * Sb) + {((Vw / 8)*(S_vy / 8)) + (S_vx / 8)} * 2 -
+每一個tile為8*8，所以S_v(x|y) / 8是為了把pixel XY轉換為tile XY -
+最後*2是因為Text BG每一個map data為2 bytes</p>
+</article><section class="jump-container is-flex is-justify-content-space-between my-6"><!-- em is empty placeholder--><a class="button is-default" href="/2022/08/04/Tile-format/" title="GBA圖形處理邏輯模擬 - Tile format"><i class="iconfont icon-prev mr-2 has-text-grey"></i><span class="has-text-weight-semibold">Previous: GBA圖形處理邏輯模擬 - Tile format</span></a><a class="button is-default" href="/2022/08/04/Affine-background/" title="GBA圖形處理邏輯模擬 - Affine background"><span class="has-text-weight-semibold">Next: GBA圖形處理邏輯模擬 - Affine background</span><i class="iconfont icon-next ml-2 has-text-grey"></i></a></section><article class="mt-6 comment-container"><script async repo="Haojen/Claudia-theme-blog" src="https://utteranc.es/client.js" issue-term="pathname" theme="preferred-color-scheme"></script></article></div></div></main></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GGORZ10227216"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><!-- 知乎--><!-- 领英--><!-- 脸书--></section><p><span>Copyright ©</span><span> 0rzgg 2022</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" target="_blank" rel="noopener" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" target="_blank" rel="noopener" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script src="/js/post.js"></script></body></html>

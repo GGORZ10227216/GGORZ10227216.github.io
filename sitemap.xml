@@ -2,7 +2,61 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://ggorz10227216.github.io/2022/08/03/basic-matrix-rule/</loc>
+    <loc>https://ggorz10227216.github.io/2022/08/04/Tile-mode/</loc>
+    
+    <lastmod>2022-08-03</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://ggorz10227216.github.io/2022/08/04/Affine-background/</loc>
+    
+    <lastmod>2022-08-03</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://ggorz10227216.github.io/2022/08/04/Background-map/</loc>
+    
+    <lastmod>2022-08-03</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://ggorz10227216.github.io/2022/08/04/Tile-format/</loc>
+    
+    <lastmod>2022-08-03</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://ggorz10227216.github.io/2022/08/04/obj-tile-memory/</loc>
+    
+    <lastmod>2022-08-03</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://ggorz10227216.github.io/2022/08/04/oam/</loc>
+    
+    <lastmod>2022-08-03</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://ggorz10227216.github.io/2022/08/03/linear-transformations/</loc>
     
     <lastmod>2022-08-03</lastmod>
     
@@ -12,6 +66,15 @@
   
   <url>
     <loc>https://ggorz10227216.github.io/2022/08/03/vector-space/</loc>
+    
+    <lastmod>2022-08-03</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://ggorz10227216.github.io/2022/08/03/basic-matrix-rule/</loc>
     
     <lastmod>2022-08-03</lastmod>
     
@@ -47,20 +110,6 @@
 
   
   <url>
-    <loc>https://ggorz10227216.github.io/tags/linear-Algebra/</loc>
-    <lastmod>2022-08-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://ggorz10227216.github.io/tags/math/</loc>
-    <lastmod>2022-08-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://ggorz10227216.github.io/tags/GBA/</loc>
     <lastmod>2022-08-03</lastmod>
     <changefreq>weekly</changefreq>
@@ -76,6 +125,20 @@
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/graphics/</loc>
+    <lastmod>2022-08-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://ggorz10227216.github.io/tags/linear-Algebra/</loc>
+    <lastmod>2022-08-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://ggorz10227216.github.io/tags/math/</loc>
     <lastmod>2022-08-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>

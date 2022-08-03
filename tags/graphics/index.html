@@ -1,11 +1,155 @@
 <!DOCTYPE html><html class="appearance-auto" lang="en"><head><meta charset="UTF-8"><title>0rzgg's blog</title><meta name="description" content="compilation terminated."><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
-<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/images/favicon.png"><link rel="stylesheet" href="/style/common/bulma.css"><link rel="stylesheet" href="/style/base.css"><link rel="stylesheet" href="/style/common/helper.css"><script src="/js/common.js"></script><link rel="stylesheet" href="/style/widget-post-list.css"><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="黃爸爸狗園" type="application/atom+xml">
-</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/">0rzgg's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><span>Tags · graphics</span></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></header><main><article class="post-container is-flex is-justify-content-center section container is-max-widescreen pt-4 px-2"><div class="columns is-variable is-1-tablet is-3-desktop-only is-2-widescreen is-full-width"><section class="column"><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/"><img class="post-cover-img js-img-fadeIn" src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/tags/GBA"><i class="tag post-item-tag">GBA</i></a><a href="/tags/emulator"><i class="tag post-item-tag">emulator</i></a><a href="/tags/graphics"><i class="tag post-item-tag">graphics</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/">GBA圖形處理邏輯模擬 (一)</a></h2><time class="has-text-grey" datetime="2022-07-21T16:13:05.000Z">2022-07-22</time><p class="is-flex-grow-2 mt-2">
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/images/favicon.png"><link rel="stylesheet" href="/style/common/bulma.css"><link rel="stylesheet" href="/style/base.css"><link rel="stylesheet" href="/style/common/helper.css"><script src="/js/common.js"></script><link rel="stylesheet" href="/style/widget-post-list.css"><meta name="generator" content="Hexo 6.2.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style><link rel="alternate" href="/atom.xml" title="黃爸爸狗園" type="application/atom+xml">
+</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/">0rzgg's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><span>Tags · graphics</span></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></header><main><article class="post-container is-flex is-justify-content-center section container is-max-widescreen pt-4 px-2"><div class="columns is-variable is-1-tablet is-3-desktop-only is-2-widescreen is-full-width"><section class="column"><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/2022/08/04/Tile-mode/"><img class="post-cover-img js-img-fadeIn" src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/tags/GBA"><i class="tag post-item-tag">GBA</i></a><a href="/tags/emulator"><i class="tag post-item-tag">emulator</i></a><a href="/tags/graphics"><i class="tag post-item-tag">graphics</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/2022/08/04/Tile-mode/">GBA圖形處理邏輯模擬(二) - Tile mode</a></h2><time class="has-text-grey" datetime="2022-08-03T17:38:07.000Z">2022-08-04</time><p class="is-flex-grow-2 mt-2">
+
+cover
+
+前文提到GBA的圖形繪製總共有兩種模式: Tile mode與Bitmap
+mode，這兩種繪圖模式雖然使用相同的記憶體區段但是工作原理大不相同，因此我們可以將其視為兩個獨立的邏輯分別開發
+我們緊接著就要來探討GBA tile mode的基礎知識</p><a class="button is-default mt-2 has-text-weight-semibold" href="/2022/08/04/Tile-mode/">Read more</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/2022/08/04/Tile-format/"><img class="post-cover-img js-img-fadeIn" src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/tags/GBA"><i class="tag post-item-tag">GBA</i></a><a href="/tags/emulator"><i class="tag post-item-tag">emulator</i></a><a href="/tags/graphics"><i class="tag post-item-tag">graphics</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/2022/08/04/Tile-format/">GBA圖形處理邏輯模擬 - Tile format</a></h2><time class="has-text-grey" datetime="2022-08-03T16:10:55.000Z">2022-08-04</time><p class="is-flex-grow-2 mt-2">
+
+cover
+
+本文會專門針對GBA tile mode下所使用的tile format做詳細的說明</p><a class="button is-default mt-2 has-text-weight-semibold" href="/2022/08/04/Tile-format/">Read more</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/2022/08/04/Background-map/"><img class="post-cover-img js-img-fadeIn" src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/tags/GBA"><i class="tag post-item-tag">GBA</i></a><a href="/tags/emulator"><i class="tag post-item-tag">emulator</i></a><a href="/tags/graphics"><i class="tag post-item-tag">graphics</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/2022/08/04/Background-map/">GBA圖形處理邏輯模擬 - Background Map</a></h2><time class="has-text-grey" datetime="2022-08-03T16:10:00.000Z">2022-08-04</time><p class="is-flex-grow-2 mt-2">
+
+cover
+
+GBA的VRAM中有數塊特殊的區域用來描述在一個BG中如何排列tile，我們將其稱呼為BG
+map memory，本文將會詳細說明其格式與特點</p><a class="button is-default mt-2 has-text-weight-semibold" href="/2022/08/04/Background-map/">Read more</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/2022/08/04/Affine-background/"><img class="post-cover-img js-img-fadeIn" src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/tags/GBA"><i class="tag post-item-tag">GBA</i></a><a href="/tags/emulator"><i class="tag post-item-tag">emulator</i></a><a href="/tags/graphics"><i class="tag post-item-tag">graphics</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/2022/08/04/Affine-background/">GBA圖形處理邏輯模擬 - Affine background</a></h2><time class="has-text-grey" datetime="2022-08-03T16:08:15.000Z">2022-08-04</time><p class="is-flex-grow-2 mt-2">
+
+cover
+
+GBA除了能夠依照Map
+memory的排列，由左至右、由上到下的產生畫面外，還能夠使用矩陣運算，產生縮放&amp;amp;旋轉過後的背景圖案，本文將會描述其原理，並且這部分的知識將與Affine
+object共通</p><a class="button is-default mt-2 has-text-weight-semibold" href="/2022/08/04/Affine-background/">Read more</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/2022/08/04/obj-tile-memory/"><img class="post-cover-img js-img-fadeIn" src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/tags/GBA"><i class="tag post-item-tag">GBA</i></a><a href="/tags/emulator"><i class="tag post-item-tag">emulator</i></a><a href="/tags/graphics"><i class="tag post-item-tag">graphics</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/2022/08/04/obj-tile-memory/">GBA圖形處理邏輯模擬 - Object tile memory</a></h2><time class="has-text-grey" datetime="2022-08-03T16:06:57.000Z">2022-08-04</time><p class="is-flex-grow-2 mt-2">
+
+cover
+
+相較於BG tile的排列是依靠map data描述，obj tile並不存在map
+data，我們會直接透過character name來存取obj tile，但obj tile
+memory實際上有兩種不同的排列方式，本文將會分別說明這兩種方式的細節</p><a class="button is-default mt-2 has-text-weight-semibold" href="/2022/08/04/obj-tile-memory/">Read more</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/2022/08/04/oam/"><img class="post-cover-img js-img-fadeIn" src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/tags/GBA"><i class="tag post-item-tag">GBA</i></a><a href="/tags/emulator"><i class="tag post-item-tag">emulator</i></a><a href="/tags/graphics"><i class="tag post-item-tag">graphics</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/2022/08/04/oam/">GBA圖形處理邏輯模擬 - Object Attribute Memory(OAM)</a></h2><time class="has-text-grey" datetime="2022-08-03T16:00:15.000Z">2022-08-04</time><p class="is-flex-grow-2 mt-2">
+
+cover
+
+相較於BG在渲染時會依照Map memory中的Map
+data進行渲染，Object在渲染時則是依照OAM中的資訊來進行，本文將會對OAM特性進行說明</p><a class="button is-default mt-2 has-text-weight-semibold" href="/2022/08/04/oam/">Read more</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/"><img class="post-cover-img js-img-fadeIn" src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/tags/GBA"><i class="tag post-item-tag">GBA</i></a><a href="/tags/emulator"><i class="tag post-item-tag">emulator</i></a><a href="/tags/graphics"><i class="tag post-item-tag">graphics</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/">GBA圖形處理邏輯模擬 (一)</a></h2><time class="has-text-grey" datetime="2022-07-21T16:13:05.000Z">2022-07-22</time><p class="is-flex-grow-2 mt-2">
 
 cover
 
 GBA模擬器的開發之路，如果說CPU部分是思考&quot;我到底該怎麼做才對&quot;，那圖形的部分就會是&quot;我到底要怎麼做才會快&quot;
-本系列文將會把重點聚焦在如何正確的實作一個GBA的圖形系統模擬函式庫，並提出一些手法來提升模擬的效率</p><a class="button is-default mt-2 has-text-weight-semibold" href="/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/">Read more</a></section></article></section><aside class="column is-hidden-mobile is-4-tablet is-3-widescreen"><div style="position: sticky; top: 50px;"><main class="aside-card-container tag-widget is-in-tag-page"><h3>Tags</h3><section><a href="/tags/linear%20Algebra"><span class="tag post-item-tag" style="margin-bottom: 5px;">linear Algebra</span></a><a href="/tags/math"><span class="tag post-item-tag" style="margin-bottom: 5px;">math</span></a><a href="/tags/GBA"><span class="tag post-item-tag" style="margin-bottom: 5px;">GBA</span></a><a href="/tags/emulator"><span class="tag post-item-tag" style="margin-bottom: 5px;">emulator</span></a><a href="/tags/graphics"><span class="tag post-item-tag" style="margin-bottom: 5px;">graphics</span></a><a href="/tags/ARM"><span class="tag post-item-tag" style="margin-bottom: 5px;">ARM</span></a><a href="/tags/system%20programming"><span class="tag post-item-tag" style="margin-bottom: 5px;">system programming</span></a></section></main></div></aside></div></article><script>$claudia.fadeInImage(null, $claudia.blurBackdropImg)
+本系列文將會把重點聚焦在如何正確的實作一個GBA的圖形系統模擬函式庫，並提出一些手法來提升模擬的效率</p><a class="button is-default mt-2 has-text-weight-semibold" href="/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/">Read more</a></section></article></section><aside class="column is-hidden-mobile is-4-tablet is-3-widescreen"><div style="position: sticky; top: 50px;"><main class="aside-card-container tag-widget is-in-tag-page"><h3>Tags</h3><section><a href="/tags/GBA"><span class="tag post-item-tag" style="margin-bottom: 5px;">GBA</span></a><a href="/tags/emulator"><span class="tag post-item-tag" style="margin-bottom: 5px;">emulator</span></a><a href="/tags/graphics"><span class="tag post-item-tag" style="margin-bottom: 5px;">graphics</span></a><a href="/tags/linear%20Algebra"><span class="tag post-item-tag" style="margin-bottom: 5px;">linear Algebra</span></a><a href="/tags/math"><span class="tag post-item-tag" style="margin-bottom: 5px;">math</span></a><a href="/tags/ARM"><span class="tag post-item-tag" style="margin-bottom: 5px;">ARM</span></a><a href="/tags/system%20programming"><span class="tag post-item-tag" style="margin-bottom: 5px;">system programming</span></a></section></main></div></aside></div></article><script>$claudia.fadeInImage(null, $claudia.blurBackdropImg)
 
 window.addEventListener('resize', $claudia.throttle(function () {
     var images = document.querySelectorAll('.js-img-fadeIn')
