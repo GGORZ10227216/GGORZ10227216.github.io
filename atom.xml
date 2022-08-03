@@ -6,7 +6,7 @@
   <link href="https://ggorz10227216.github.io/atom.xml" rel="self"/>
   
   <link href="https://ggorz10227216.github.io/"/>
-  <updated>2022-08-03T17:41:43.350Z</updated>
+  <updated>2022-08-03T17:54:44.088Z</updated>
   <id>https://ggorz10227216.github.io/</id>
   
   <author>
@@ -18,12 +18,12 @@
   
   <entry>
     <title>GBA圖形處理邏輯模擬(二) - Tile mode</title>
-    <link href="https://ggorz10227216.github.io/2022/08/04/Tile-mode/"/>
-    <id>https://ggorz10227216.github.io/2022/08/04/Tile-mode/</id>
+    <link href="https://ggorz10227216.github.io/Tile-mode/"/>
+    <id>https://ggorz10227216.github.io/Tile-mode/</id>
     <published>2022-08-03T17:38:07.000Z</published>
-    <updated>2022-08-03T17:41:43.350Z</updated>
+    <updated>2022-08-03T17:54:44.088Z</updated>
     
-    <content type="html"><![CDATA[<figure><img src="https://i.imgur.com/SNkM4rS.jpg" alt="cover"><figcaption aria-hidden="true">cover</figcaption></figure><p>前文提到GBA的圖形繪製總共有兩種模式: Tile mode與Bitmapmode，這兩種繪圖模式雖然使用相同的記憶體區段但是工作原理大不相同，因此我們可以將其視為兩個獨立的邏輯分別開發</p><p>我們緊接著就要來探討GBA tile mode的基礎知識</p><span id="more"></span><h2 id="如何生成一幀畫面">如何生成一幀畫面</h2><h3 id="背景與物件">背景與物件</h3><p>先來看一個在Tile mode下繪製而成的遊戲畫面</p><table><thead><tr class="header"><th style="text-align: center;"><img src="https://i.imgur.com/7o8ccxI.png" alt="demo_frame"></th></tr></thead><tbody><tr class="odd"><td style="text-align: center;"><em>Castlevania-Aria of sorrow, renderby NO$GBA</em></td></tr></tbody></table><p>畫面中所有看的到的東西基本上是由兩種東西疊合而成: 1. 背景(background,BG) 2. 物件(Object, OBJ)</p><p>他們之間的關係看起來會像是這樣:</p><figure><img src="https://i.imgur.com/SUNA8Vp.png" alt="bg_and_sprite"><figcaption aria-hidden="true">bg_and_sprite</figcaption></figure><p>你會注意到背景與物件各有四層圖層，我們可以將剛剛的遊戲畫面分層來看</p><table><colgroup><col style="width: 50%"><col style="width: 50%"></colgroup><thead><tr class="header"><th>BG_0</th><th>BG_1</th></tr></thead><tbody><tr class="odd"><td><img src="https://i.imgur.com/RtbYD5j.png%20=240x" alt="BG_0"></td><td><img src="https://i.imgur.com/L936ZTJ.png%20=240x" alt="BG_1"></td></tr><tr class="even"><td>BG_2</td><td>BG_3</td></tr><tr class="odd"><td><img src="https://i.imgur.com/XLf2E7m.png%20=240x" alt="BG_2"></td><td><img src="https://i.imgur.com/mC3BcUM.png%20=240x" alt="BG_3"></td></tr><tr class="even"><td>OBJ(我疊合成一層了)</td><td></td></tr><tr class="odd"><td><img src="https://i.imgur.com/Iv2fqsn.png%20=240x" alt="OBJ"></td><td></td></tr></tbody></table><h2 id="tile-map">Tile &amp; map</h2><p>我們現在知道在Tilemode下，每一個畫面都是由背景跟物件所組成的了，那這些背景和物件又是如何被建構的呢?</p><p>要回答這個問題，我們必須從兩個方向來做分析:</p><ol type="1"><li><p>用什麼東西組合 Tilemode下所有的東西基本上都是由Tile所組合而成的，我們這裡所說的tile，是一塊一塊由8*8個pixel所組成的圖形資料，類似這種(仔細看，這是骷髏騎士的劍柄)<img src="https://i.imgur.com/jKxBMLf.png" alt="tile_sample"></p><p>Tile的格式請參閱<a href="/ZSQzSQKBTDWp4Rtmo9Vlpw">GBA圖形處理邏輯模擬- Tile format</a></p></li><li><p>如何組合另外一個需要釐清的問題是，我們該如何組合這些8*8的tile來產生我們想要的圖形，這就牽涉到我們現在是要繪製背景圖層還是物件，兩者的組合邏輯有些差異，詳細說明請參閱以下文章:</p><ul><li><a href="/rmkjzdacTMq3nuI9VyZKQw">GBA圖形處理邏輯模擬 - BackgroundMap</a></li><li><a href="/Wsb2Fa7WQA6ut0O7JGj1Nw">GBA圖形處理邏輯模擬 - ObjectAttribute Memory(OAM)</a></li></ul></li></ol><h2 id="mode-0-mode-1-mode-2">Mode 0, Mode 1, Mode 2</h2><p>Tile mode實質意義上指的是Mode 0, 1,2這三個模式，因為這三種模式都使用tile建構畫面的基礎，因此統稱為tilemode</p><p>那這些mode有哪些特點呢，讓我們來仔細看一下這個表格:</p><figure><img src="https://i.imgur.com/MkrrczV.png" alt="mode_table"><figcaption aria-hidden="true">mode_table</figcaption></figure><p>根據表格，我們可以得知以下數點不同之處:</p><ol type="1"><li>是否有支援Affine(Rotation &amp; Scaling)功能<ul><li>詳細請參考<a href="/CwJ9l02WSeqwf7bM_Io5Ew">GBA圖形處理邏輯模擬 -Affine background</a></li></ul></li><li>最大可支援的Screen數量以及尺寸<ul><li>詳細請參考<a href="/rmkjzdacTMq3nuI9VyZKQw">GBA圖形處理邏輯模擬 -Background Map</a></li></ul></li><li>最大可使用的Character(就是Tile)以及調色盤格式(palette)<ul><li>詳細請參考<a href="/ZSQzSQKBTDWp4Rtmo9Vlpw">GBA圖形處理邏輯模擬 -Tile format</a></li></ul></li></ol><h2 id="bg-control-register">BG control register</h2><p>前面有提到Tile mode下總共會有4層背景圖層，這四層圖層會受到當前的modenumber影響，決定是否能夠被使用</p><figure><img src="https://i.imgur.com/FjQLGRZ.png" alt="layer_info"><figcaption aria-hidden="true">layer_info</figcaption></figure><ul><li>text與rotation/scaling是?<ul><li>如表格所示，BG0與BG1這兩個圖層僅支援Text mode<ul><li>換言之就是沒有旋轉跟縮放的mode</li></ul></li><li>而BG2與BG3則除了text mode之外，還可支援旋轉縮放<ul><li>我會將rotation/scaling稱呼為affine</li></ul></li></ul></li></ul><p>另外，這四層背景繪製時也會有一些可控的參數，描述如下，你可以依照下面給出的連結查閱他們的詳細資訊</p><figure><img src="https://i.imgur.com/sGYRLSy.png" alt="bgcnt_info"><figcaption aria-hidden="true">bgcnt_info</figcaption></figure><ul><li>對應四層圖層的register分別被mapping在(2 bytes each):<ol type="1"><li>BG0CNT(0x0400'0008)</li><li>BG1CNT(0x0400'000A)</li><li>BG2CNT(0x0400'000C)</li><li>BG3CNT(0x0400'000E)</li></ol></li><li>各欄位的詳細說明請參照:<ul><li>Priority Specification<ul><li><a href="/E2vEEDZsSSaBsZ4LtJGK8g">GBA圖形處理邏輯模擬 - Graphicseffect #<span class="math inline"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.025ex;" xmlns="http://www.w3.org/2000/svg" width="1.448ex" height="1.025ex" role="img" focusable="false" viewBox="0 -442 640 453"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><path data-c="1D6FC" d="M34 156Q34 270 120 356T309 442Q379 442 421 402T478 304Q484 275 485 237V208Q534 282 560 374Q564 388 566 390T582 393Q603 393 603 385Q603 376 594 346T558 261T497 161L486 147L487 123Q489 67 495 47T514 26Q528 28 540 37T557 60Q559 67 562 68T577 70Q597 70 597 62Q597 56 591 43Q579 19 556 5T512 -10H505Q438 -10 414 62L411 69L400 61Q390 53 370 41T325 18T267 -2T203 -11Q124 -11 79 39T34 156ZM208 26Q257 26 306 47T379 90L403 112Q401 255 396 290Q382 405 304 405Q235 405 183 332Q156 292 139 224T121 120Q121 71 146 49T208 26Z"></path></g></g></g></svg></mjx-container></span> blending</a></li></ul></li><li>Character Base Block<ul><li><a href="/ZSQzSQKBTDWp4Rtmo9Vlpw">GBA圖形處理邏輯模擬 - Tileformat</a></li></ul></li><li>Mosaic<ul><li><a href="/E2vEEDZsSSaBsZ4LtJGK8g">GBA圖形處理邏輯模擬 - Graphicseffect #Mosaic</a></li></ul></li><li>Color Mode<ul><li><a href="/ZSQzSQKBTDWp4Rtmo9Vlpw">GBA圖形處理邏輯模擬 - Tileformat</a></li></ul></li><li>Screen Base Block<ul><li><a href="/rmkjzdacTMq3nuI9VyZKQw">GBA圖形處理邏輯模擬 - BackgroundMap</a></li></ul></li><li>Area Overflow Processing Flag<ul><li>要注意這個flag對BG0與BG1無效</li><li>詳細請參考<a href="/CwJ9l02WSeqwf7bM_Io5Ew">GBA圖形處理邏輯模擬 -Affine background</a></li></ul></li><li>Screen Size<ul><li><a href="/rmkjzdacTMq3nuI9VyZKQw">GBA圖形處理邏輯模擬 - BackgroundMap</a></li></ul></li></ul></li></ul>]]></content>
+    <content type="html"><![CDATA[<figure><img src="https://i.imgur.com/SNkM4rS.jpg" alt="cover"><figcaption aria-hidden="true">cover</figcaption></figure><p>前文提到GBA的圖形繪製總共有兩種模式: Tile mode與Bitmapmode，這兩種繪圖模式雖然使用相同的記憶體區段但是工作原理大不相同，因此我們可以將其視為兩個獨立的邏輯分別開發</p><p>我們緊接著就要來探討GBA tile mode的基礎知識</p><span id="more"></span><h2 id="如何生成一幀畫面">如何生成一幀畫面</h2><h3 id="背景與物件">背景與物件</h3><p>先來看一個在Tile mode下繪製而成的遊戲畫面</p><table><thead><tr class="header"><th style="text-align: center;"><img src="https://i.imgur.com/7o8ccxI.png" alt="demo_frame"></th></tr></thead><tbody><tr class="odd"><td style="text-align: center;"><em>Castlevania-Aria of sorrow, renderby NO$GBA</em></td></tr></tbody></table><p>畫面中所有看的到的東西基本上是由兩種東西疊合而成: 1. 背景(background,BG) 2. 物件(Object, OBJ)</p><p>他們之間的關係看起來會像是這樣:</p><figure><img src="https://i.imgur.com/SUNA8Vp.png" alt="bg_and_sprite"><figcaption aria-hidden="true">bg_and_sprite</figcaption></figure><p>你會注意到背景與物件各有四層圖層，我們可以將剛剛的遊戲畫面分層來看</p><table><colgroup><col style="width: 50%"><col style="width: 50%"></colgroup><thead><tr class="header"><th>BG_0</th><th>BG_1</th></tr></thead><tbody><tr class="odd"><td><img src="https://i.imgur.com/RtbYD5j.png%20=240x" alt="BG_0"></td><td><img src="https://i.imgur.com/L936ZTJ.png%20=240x" alt="BG_1"></td></tr><tr class="even"><td>BG_2</td><td>BG_3</td></tr><tr class="odd"><td><img src="https://i.imgur.com/XLf2E7m.png%20=240x" alt="BG_2"></td><td><img src="https://i.imgur.com/mC3BcUM.png%20=240x" alt="BG_3"></td></tr><tr class="even"><td>OBJ(我疊合成一層了)</td><td></td></tr><tr class="odd"><td><img src="https://i.imgur.com/Iv2fqsn.png%20=240x" alt="OBJ"></td><td></td></tr></tbody></table><h2 id="tile-map">Tile &amp; map</h2><p>我們現在知道在Tilemode下，每一個畫面都是由背景跟物件所組成的了，那這些背景和物件又是如何被建構的呢?</p><p>要回答這個問題，我們必須從兩個方向來做分析:</p><ol type="1"><li><p>用什麼東西組合 Tilemode下所有的東西基本上都是由Tile所組合而成的，我們這裡所說的tile，是一塊一塊由8*8個pixel所組成的圖形資料，類似這種(仔細看，這是骷髏騎士的劍柄)<img src="https://i.imgur.com/jKxBMLf.png" alt="tile_sample"></p><p>Tile的格式請參閱<a href="/Tile-format">GBA圖形處理邏輯模擬 - Tileformat</a></p></li><li><p>如何組合另外一個需要釐清的問題是，我們該如何組合這些8*8的tile來產生我們想要的圖形，這就牽涉到我們現在是要繪製背景圖層還是物件，兩者的組合邏輯有些差異，詳細說明請參閱以下文章:</p><ul><li><a href="/Background-map">GBA圖形處理邏輯模擬 - BackgroundMap</a></li><li><a href="/oam">GBA圖形處理邏輯模擬 - Object AttributeMemory(OAM)</a></li></ul></li></ol><h2 id="mode-0-mode-1-mode-2">Mode 0, Mode 1, Mode 2</h2><p>Tile mode實質意義上指的是Mode 0, 1,2這三個模式，因為這三種模式都使用tile建構畫面的基礎，因此統稱為tilemode</p><p>那這些mode有哪些特點呢，讓我們來仔細看一下這個表格:</p><figure><img src="https://i.imgur.com/MkrrczV.png" alt="mode_table"><figcaption aria-hidden="true">mode_table</figcaption></figure><p>根據表格，我們可以得知以下數點不同之處:</p><ol type="1"><li>是否有支援Affine(Rotation &amp; Scaling)功能<ul><li>詳細請參考<a href="/Affine-background">GBA圖形處理邏輯模擬 - Affinebackground</a></li></ul></li><li>最大可支援的Screen數量以及尺寸<ul><li>詳細請參考<a href="/Background-map">GBA圖形處理邏輯模擬 - BackgroundMap</a></li></ul></li><li>最大可使用的Character(就是Tile)以及調色盤格式(palette)<ul><li>詳細請參考<a href="/Tile-format">GBA圖形處理邏輯模擬 - Tileformat</a></li></ul></li></ol><h2 id="bg-control-register">BG control register</h2><p>前面有提到Tile mode下總共會有4層背景圖層，這四層圖層會受到當前的modenumber影響，決定是否能夠被使用</p><figure><img src="https://i.imgur.com/FjQLGRZ.png" alt="layer_info"><figcaption aria-hidden="true">layer_info</figcaption></figure><ul><li>text與rotation/scaling是?<ul><li>如表格所示，BG0與BG1這兩個圖層僅支援Text mode<ul><li>換言之就是沒有旋轉跟縮放的mode</li></ul></li><li>而BG2與BG3則除了text mode之外，還可支援旋轉縮放<ul><li>我會將rotation/scaling稱呼為affine</li></ul></li></ul></li></ul><p>另外，這四層背景繪製時也會有一些可控的參數，描述如下，你可以依照下面給出的連結查閱他們的詳細資訊</p><figure><img src="https://i.imgur.com/sGYRLSy.png" alt="bgcnt_info"><figcaption aria-hidden="true">bgcnt_info</figcaption></figure><ul><li>對應四層圖層的register分別被mapping在(2 bytes each):<ol type="1"><li>BG0CNT(0x0400'0008)</li><li>BG1CNT(0x0400'000A)</li><li>BG2CNT(0x0400'000C)</li><li>BG3CNT(0x0400'000E)</li></ol></li><li>各欄位的詳細說明請參照:<ul><li>Priority Specification<ul><li><a href="/E2vEEDZsSSaBsZ4LtJGK8g">GBA圖形處理邏輯模擬 - Graphicseffect(WIP) #<span class="math inline"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.025ex;" xmlns="http://www.w3.org/2000/svg" width="1.448ex" height="1.025ex" role="img" focusable="false" viewBox="0 -442 640 453"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><path data-c="1D6FC" d="M34 156Q34 270 120 356T309 442Q379 442 421 402T478 304Q484 275 485 237V208Q534 282 560 374Q564 388 566 390T582 393Q603 393 603 385Q603 376 594 346T558 261T497 161L486 147L487 123Q489 67 495 47T514 26Q528 28 540 37T557 60Q559 67 562 68T577 70Q597 70 597 62Q597 56 591 43Q579 19 556 5T512 -10H505Q438 -10 414 62L411 69L400 61Q390 53 370 41T325 18T267 -2T203 -11Q124 -11 79 39T34 156ZM208 26Q257 26 306 47T379 90L403 112Q401 255 396 290Q382 405 304 405Q235 405 183 332Q156 292 139 224T121 120Q121 71 146 49T208 26Z"></path></g></g></g></svg></mjx-container></span>blending</a></li></ul></li><li>Character Base Block<ul><li><a href="/Tile-format">GBA圖形處理邏輯模擬 - Tile format</a></li></ul></li><li>Mosaic<ul><li><a href="/E2vEEDZsSSaBsZ4LtJGK8g">GBA圖形處理邏輯模擬 - Graphicseffect(WIP) #Mosaic</a></li></ul></li><li>Color Mode<ul><li><a href="/Tile-format">GBA圖形處理邏輯模擬 - Tile format</a></li></ul></li><li>Screen Base Block<ul><li><a href="/Background-map">GBA圖形處理邏輯模擬 - BackgroundMap</a></li></ul></li><li>Area Overflow Processing Flag<ul><li>要注意這個flag對BG0與BG1無效</li><li>詳細請參考<a href="/Affine-background">GBA圖形處理邏輯模擬 - Affinebackground</a></li></ul></li><li>Screen Size<ul><li><a href="/Background-map">GBA圖形處理邏輯模擬 - BackgroundMap</a></li></ul></li></ul></li></ul>]]></content>
     
     
     <summary type="html">&lt;figure&gt;
@@ -47,8 +47,8 @@ mode，這兩種繪圖模式雖然使用相同的記憶體區段但是工作原�
   
   <entry>
     <title>GBA圖形處理邏輯模擬 - Tile format</title>
-    <link href="https://ggorz10227216.github.io/2022/08/04/Tile-format/"/>
-    <id>https://ggorz10227216.github.io/2022/08/04/Tile-format/</id>
+    <link href="https://ggorz10227216.github.io/Tile-format/"/>
+    <id>https://ggorz10227216.github.io/Tile-format/</id>
     <published>2022-08-03T16:10:55.000Z</published>
     <updated>2022-08-03T16:14:58.355Z</updated>
     
@@ -74,8 +74,8 @@ mode，這兩種繪圖模式雖然使用相同的記憶體區段但是工作原�
   
   <entry>
     <title>GBA圖形處理邏輯模擬 - Background Map</title>
-    <link href="https://ggorz10227216.github.io/2022/08/04/Background-map/"/>
-    <id>https://ggorz10227216.github.io/2022/08/04/Background-map/</id>
+    <link href="https://ggorz10227216.github.io/Background-map/"/>
+    <id>https://ggorz10227216.github.io/Background-map/</id>
     <published>2022-08-03T16:10:00.000Z</published>
     <updated>2022-08-03T16:33:02.932Z</updated>
     
@@ -102,8 +102,8 @@ map memory，本文將會詳細說明其格式與特點&lt;/p&gt;</summary>
   
   <entry>
     <title>GBA圖形處理邏輯模擬 - Affine background</title>
-    <link href="https://ggorz10227216.github.io/2022/08/04/Affine-background/"/>
-    <id>https://ggorz10227216.github.io/2022/08/04/Affine-background/</id>
+    <link href="https://ggorz10227216.github.io/Affine-background/"/>
+    <id>https://ggorz10227216.github.io/Affine-background/</id>
     <published>2022-08-03T16:08:15.000Z</published>
     <updated>2022-08-03T17:36:24.316Z</updated>
     
@@ -131,8 +131,8 @@ object共通&lt;/p&gt;</summary>
   
   <entry>
     <title>GBA圖形處理邏輯模擬 - Object tile memory</title>
-    <link href="https://ggorz10227216.github.io/2022/08/04/obj-tile-memory/"/>
-    <id>https://ggorz10227216.github.io/2022/08/04/obj-tile-memory/</id>
+    <link href="https://ggorz10227216.github.io/obj-tile-memory/"/>
+    <id>https://ggorz10227216.github.io/obj-tile-memory/</id>
     <published>2022-08-03T16:06:57.000Z</published>
     <updated>2022-08-03T16:07:30.708Z</updated>
     
@@ -160,8 +160,8 @@ memory實際上有兩種不同的排列方式，本文將會分別說明這兩�
   
   <entry>
     <title>GBA圖形處理邏輯模擬 - Object Attribute Memory(OAM)</title>
-    <link href="https://ggorz10227216.github.io/2022/08/04/oam/"/>
-    <id>https://ggorz10227216.github.io/2022/08/04/oam/</id>
+    <link href="https://ggorz10227216.github.io/oam/"/>
+    <id>https://ggorz10227216.github.io/oam/</id>
     <published>2022-08-03T16:00:15.000Z</published>
     <updated>2022-08-03T16:01:36.914Z</updated>
     
@@ -188,8 +188,8 @@ data進行渲染，Object在渲染時則是依照OAM中的資訊來進行，本�
   
   <entry>
     <title>Linear transformations</title>
-    <link href="https://ggorz10227216.github.io/2022/08/03/linear-transformations/"/>
-    <id>https://ggorz10227216.github.io/2022/08/03/linear-transformations/</id>
+    <link href="https://ggorz10227216.github.io/linear-transformations/"/>
+    <id>https://ggorz10227216.github.io/linear-transformations/</id>
     <published>2022-08-03T15:52:00.000Z</published>
     <updated>2022-08-03T15:57:08.764Z</updated>
     
@@ -213,8 +213,8 @@ data進行渲染，Object在渲染時則是依照OAM中的資訊來進行，本�
   
   <entry>
     <title>Matrix calculation rules</title>
-    <link href="https://ggorz10227216.github.io/2022/08/03/basic-matrix-rule/"/>
-    <id>https://ggorz10227216.github.io/2022/08/03/basic-matrix-rule/</id>
+    <link href="https://ggorz10227216.github.io/basic-matrix-rule/"/>
+    <id>https://ggorz10227216.github.io/basic-matrix-rule/</id>
     <published>2022-08-03T13:21:09.000Z</published>
     <updated>2022-08-03T15:24:51.807Z</updated>
     
@@ -241,8 +241,8 @@ identity matrix and c is a real number.&lt;/p&gt;</summary>
   
   <entry>
     <title>Vector space</title>
-    <link href="https://ggorz10227216.github.io/2022/08/03/vector-space/"/>
-    <id>https://ggorz10227216.github.io/2022/08/03/vector-space/</id>
+    <link href="https://ggorz10227216.github.io/vector-space/"/>
+    <id>https://ggorz10227216.github.io/vector-space/</id>
     <published>2022-08-03T09:27:02.000Z</published>
     <updated>2022-08-03T15:50:27.937Z</updated>
     
@@ -266,8 +266,8 @@ identity matrix and c is a real number.&lt;/p&gt;</summary>
   
   <entry>
     <title>GBA圖形處理邏輯模擬 (一)</title>
-    <link href="https://ggorz10227216.github.io/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/"/>
-    <id>https://ggorz10227216.github.io/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/</id>
+    <link href="https://ggorz10227216.github.io/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/"/>
+    <id>https://ggorz10227216.github.io/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/</id>
     <published>2022-07-21T16:13:05.000Z</published>
     <updated>2022-07-21T16:28:53.352Z</updated>
     
@@ -294,8 +294,8 @@ identity matrix and c is a real number.&lt;/p&gt;</summary>
   
   <entry>
     <title>GBA的軟體中斷與其相對應的處理</title>
-    <link href="https://ggorz10227216.github.io/2022/07/19/hardirq/"/>
-    <id>https://ggorz10227216.github.io/2022/07/19/hardirq/</id>
+    <link href="https://ggorz10227216.github.io/hardirq/"/>
+    <id>https://ggorz10227216.github.io/hardirq/</id>
     <published>2022-07-19T10:35:23.000Z</published>
     <updated>2022-07-21T16:17:12.347Z</updated>
     
