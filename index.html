@@ -1,14 +1,139 @@
 <!DOCTYPE html><html class="appearance-auto" lang="en"><head><meta charset="UTF-8"><title>0rzgg's blog</title><meta name="description" content="compilation terminated."><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
-<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/images/favicon.png"><link rel="stylesheet" href="/style/common/bulma.css"><link rel="stylesheet" href="/style/base.css"><link rel="stylesheet" href="/style/common/helper.css"><script src="/js/common.js"></script><link rel="stylesheet" href="/style/widget-post-list.css"><!-- hexo injector head_end start -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/images/favicon.png"><link rel="stylesheet" href="/style/common/bulma.css"><link rel="stylesheet" href="/style/base.css"><link rel="stylesheet" href="/style/common/helper.css"><script src="/js/common.js"></script><link rel="stylesheet" href="/style/widget-post-list.css"><meta name="generator" content="Hexo 6.2.0"><style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
-<!-- hexo injector head_end end --><meta name="generator" content="Hexo 6.2.0"><link rel="alternate" href="/atom.xml" title="黃爸爸狗園" type="application/atom+xml">
-</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/">0rzgg's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></header><main><article class="post-container is-flex is-justify-content-center section container is-max-widescreen pt-4 px-2"><div class="columns is-variable is-1-tablet is-3-desktop-only is-2-widescreen is-full-width"><section class="column"><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="https://i.imgur.com/2GGrKjg.png" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/2022/08/03/vector-space/"><img class="post-cover-img js-img-fadeIn" src="https://i.imgur.com/2GGrKjg.png" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/tags/linear%20Algebra"><i class="tag post-item-tag">linear Algebra</i></a><a href="/tags/math"><i class="tag post-item-tag">math</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/2022/08/03/vector-space/">Vector space</a></h2><time class="has-text-grey" datetime="2022-08-03T09:27:02.000Z">2022-08-03</time><p class="is-flex-grow-2 mt-2">
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style><link rel="alternate" href="/atom.xml" title="黃爸爸狗園" type="application/atom+xml">
+</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/">0rzgg's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></header><main><article class="post-container is-flex is-justify-content-center section container is-max-widescreen pt-4 px-2"><div class="columns is-variable is-1-tablet is-3-desktop-only is-2-widescreen is-full-width"><section class="column"><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="https://i.imgur.com/2GGrKjg.png" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/2022/08/03/basic-matrix-rule/"><img class="post-cover-img js-img-fadeIn" src="https://i.imgur.com/2GGrKjg.png" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/tags/linear%20Algebra"><i class="tag post-item-tag">linear Algebra</i></a><a href="/tags/math"><i class="tag post-item-tag">math</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/2022/08/03/basic-matrix-rule/">Matrix calculation rules</a></h2><time class="has-text-grey" datetime="2022-08-03T13:21:09.000Z">2022-08-03</time><p class="is-flex-grow-2 mt-2">
+
+image alt
+
+The algebra of matrix follows some rules for addition and
+multiplication. Let us consider A, B and C are three different square
+matrices. A’ is the transpose and A-1 is the inverse of A. I is the
+identity matrix and c is a real number.</p><a class="button is-default mt-2 has-text-weight-semibold" href="/2022/08/03/basic-matrix-rule/">Read more</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="https://i.imgur.com/2GGrKjg.png" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/2022/08/03/vector-space/"><img class="post-cover-img js-img-fadeIn" src="https://i.imgur.com/2GGrKjg.png" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/tags/linear%20Algebra"><i class="tag post-item-tag">linear Algebra</i></a><a href="/tags/math"><i class="tag post-item-tag">math</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/2022/08/03/vector-space/">Vector space</a></h2><time class="has-text-grey" datetime="2022-08-03T09:27:02.000Z">2022-08-03</time><p class="is-flex-grow-2 mt-2">
+
+image alt
+
 有關於向量空間的一些筆記，放在這裡以備不時之需</p><a class="button is-default mt-2 has-text-weight-semibold" href="/2022/08/03/vector-space/">Read more</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/"><img class="post-cover-img js-img-fadeIn" src="https://i.imgur.com/SNkM4rS.jpg" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/tags/GBA"><i class="tag post-item-tag">GBA</i></a><a href="/tags/emulator"><i class="tag post-item-tag">emulator</i></a><a href="/tags/graphics"><i class="tag post-item-tag">graphics</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/">GBA圖形處理邏輯模擬 (一)</a></h2><time class="has-text-grey" datetime="2022-07-21T16:13:05.000Z">2022-07-22</time><p class="is-flex-grow-2 mt-2">
-GBA模擬器的開發之路，如果說CPU部分是思考&amp;quot;我到底該怎麼做才對&amp;quot;，那圖形的部分就會是&amp;quot;我到底要怎麼做才會快&amp;quot;
+
+cover
+
+GBA模擬器的開發之路，如果說CPU部分是思考&quot;我到底該怎麼做才對&quot;，那圖形的部分就會是&quot;我到底要怎麼做才會快&quot;
 本系列文將會把重點聚焦在如何正確的實作一個GBA的圖形系統模擬函式庫，並提出一些手法來提升模擬的效率</p><a class="button is-default mt-2 has-text-weight-semibold" href="/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/">Read more</a></section></article><article class="post-item-card"><header class="is-relative is-flex"><div class="post-cover-backdrop is-hidden"><img src="https://i.imgur.com/t0NzpK9.jpg" alt="loading.."></div><a class="post-cover-link has-text-centered skeleton" href="/2022/07/19/hardirq/"><img class="post-cover-img js-img-fadeIn" src="https://i.imgur.com/t0NzpK9.jpg" alt="loading.." data-backdrop="true"></a></header><section class="content post-card-content p-4 pb-5"><header><a href="/tags/GBA"><i class="tag post-item-tag">GBA</i></a><a href="/tags/emulator"><i class="tag post-item-tag">emulator</i></a><a href="/tags/ARM"><i class="tag post-item-tag">ARM</i></a><a href="/tags/system%20programming"><i class="tag post-item-tag">system programming</i></a></header><h2 class="mt-4 mb-0 is-family-serif"><a href="/2022/07/19/hardirq/">GBA的軟體中斷與其相對應的處理</a></h2><time class="has-text-grey" datetime="2022-07-19T10:35:23.000Z">2022-07-19</time><p class="is-flex-grow-2 mt-2">
-GBA所使用的CPU ARM7TDMI要觸發中斷基本上有硬體中斷與軟體中斷兩種手段，兩種中斷的運作機制部份相似但在關鍵部份還是有所差異，若要正確模擬GBA的中斷就必須要將這兩種中斷的運作機制都搞清楚才行
+
+cover
+
+GBA所使用的CPU
+ARM7TDMI要觸發中斷基本上有硬體中斷與軟體中斷兩種手段，兩種中斷的運作機制部份相似但在關鍵部份還是有所差異，若要正確模擬GBA的中斷就必須要將這兩種中斷的運作機制都搞清楚才行
 換句話說，關於GBA的中斷沒有打模糊仗的空間，該讀的Spec就是要讀，該想的問題就是要想
 本文會先就軟體中斷的部份作解說，硬體中斷會在另外一篇文章作描述</p><a class="button is-default mt-2 has-text-weight-semibold" href="/2022/07/19/hardirq/">Read more</a></section></article></section><aside class="column is-hidden-mobile is-4-tablet is-3-widescreen"><style>.search-widget .search-input {
     border: none;
@@ -139,7 +264,7 @@ searchButtonEl.onclick = function () {
         var doc = domparser.parseFromString(res, 'application/xml')
         searchDatabase = doc.getElementsByTagName('search')[0].children
     })
-}</script><main class="aside-card-container profile-widget"><!-- todo: 使用取色工具动态阴影--><section class="is-flex is-flex-direction-column is-justify-content-center is-align-items-center"><section class="is-flex is-justify-content-center avatar is-clipped skeleton"><!-- debug images "https://api.ixiaowai.cn/gqapi/gqapi.php"--><img class="js-img-fadeIn" src="/images/avatar.png" alt="user avatar"></section><h3 class="user-name">0rzgg</h3><blockquote class="has-text-centered is-relative"><span style="margin-bottom: 5px;">compilation terminated.</span></blockquote><address class="has-text-centered has-text-grey"><i class="iconfont icon-location" style="margin-right: 5px;"></i><span class="has-text-grey">黃爸爸狗園</span></address></section><section class="sns-container is-flex is-justify-content-center is-align-items-center"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GGORZ10227216"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><!-- 知乎--><!-- 领英--><!-- 脸书--></section></main><main class="aside-card-container recent-widget"><h3>Recent</h3><ul><li class="is-flex"><!-- change to element replace image placeholder--><img class="js-img-fadeIn" src="https://i.imgur.com/2GGrKjg.png" alt="cover"><!--else--><!--    div.post-img-placeholder--><section class="is-flex-grow-2"><p class="has-text-weight-semibold" style="line-height: 20px; font-size: 14px"><a href="/2022/08/03/vector-space/">Vector space</a></p><time class="has-text-weight-semibold has-text-grey" datetime="2022-08-03T09:27:02.000Z">2022-08-03</time></section></li><li class="is-flex"><!-- change to element replace image placeholder--><img class="js-img-fadeIn" src="https://i.imgur.com/SNkM4rS.jpg" alt="cover"><!--else--><!--    div.post-img-placeholder--><section class="is-flex-grow-2"><p class="has-text-weight-semibold" style="line-height: 20px; font-size: 14px"><a href="/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/">GBA圖形處理邏輯模擬 (一)</a></p><time class="has-text-weight-semibold has-text-grey" datetime="2022-07-21T16:13:05.000Z">2022-07-22</time></section></li><li class="is-flex"><!-- change to element replace image placeholder--><img class="js-img-fadeIn" src="https://i.imgur.com/t0NzpK9.jpg" alt="cover"><!--else--><!--    div.post-img-placeholder--><section class="is-flex-grow-2"><p class="has-text-weight-semibold" style="line-height: 20px; font-size: 14px"><a href="/2022/07/19/hardirq/">GBA的軟體中斷與其相對應的處理</a></p><time class="has-text-weight-semibold has-text-grey" datetime="2022-07-19T10:35:23.000Z">2022-07-19</time></section></li></ul></main><main class="aside-card-container archives-widget"><h3>Archives</h3><section><ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a><span class="archive-list-count">2</span></li></ul></section></main><main class="aside-card-container tag-widget"><h3>Tags</h3><section><a href="/tags/GBA"><span class="tag post-item-tag" style="margin-bottom: 5px;">GBA</span></a><a href="/tags/emulator"><span class="tag post-item-tag" style="margin-bottom: 5px;">emulator</span></a><a href="/tags/graphics"><span class="tag post-item-tag" style="margin-bottom: 5px;">graphics</span></a><a href="/tags/ARM"><span class="tag post-item-tag" style="margin-bottom: 5px;">ARM</span></a><a href="/tags/system%20programming"><span class="tag post-item-tag" style="margin-bottom: 5px;">system programming</span></a><a href="/tags/linear%20Algebra"><span class="tag post-item-tag" style="margin-bottom: 5px;">linear Algebra</span></a><a href="/tags/math"><span class="tag post-item-tag" style="margin-bottom: 5px;">math</span></a></section></main></aside></div></article><script>$claudia.fadeInImage(null, $claudia.blurBackdropImg)
+}</script><main class="aside-card-container profile-widget"><!-- todo: 使用取色工具动态阴影--><section class="is-flex is-flex-direction-column is-justify-content-center is-align-items-center"><section class="is-flex is-justify-content-center avatar is-clipped skeleton"><!-- debug images "https://api.ixiaowai.cn/gqapi/gqapi.php"--><img class="js-img-fadeIn" src="/images/avatar.png" alt="user avatar"></section><h3 class="user-name">0rzgg</h3><blockquote class="has-text-centered is-relative"><span style="margin-bottom: 5px;">compilation terminated.</span></blockquote><address class="has-text-centered has-text-grey"><i class="iconfont icon-location" style="margin-right: 5px;"></i><span class="has-text-grey">黃爸爸狗園</span></address></section><section class="sns-container is-flex is-justify-content-center is-align-items-center"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GGORZ10227216"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><!-- 知乎--><!-- 领英--><!-- 脸书--></section></main><main class="aside-card-container recent-widget"><h3>Recent</h3><ul><li class="is-flex"><!-- change to element replace image placeholder--><img class="js-img-fadeIn" src="https://i.imgur.com/2GGrKjg.png" alt="cover"><!--else--><!--    div.post-img-placeholder--><section class="is-flex-grow-2"><p class="has-text-weight-semibold" style="line-height: 20px; font-size: 14px"><a href="/2022/08/03/basic-matrix-rule/">Matrix calculation rules</a></p><time class="has-text-weight-semibold has-text-grey" datetime="2022-08-03T13:21:09.000Z">2022-08-03</time></section></li><li class="is-flex"><!-- change to element replace image placeholder--><img class="js-img-fadeIn" src="https://i.imgur.com/2GGrKjg.png" alt="cover"><!--else--><!--    div.post-img-placeholder--><section class="is-flex-grow-2"><p class="has-text-weight-semibold" style="line-height: 20px; font-size: 14px"><a href="/2022/08/03/vector-space/">Vector space</a></p><time class="has-text-weight-semibold has-text-grey" datetime="2022-08-03T09:27:02.000Z">2022-08-03</time></section></li><li class="is-flex"><!-- change to element replace image placeholder--><img class="js-img-fadeIn" src="https://i.imgur.com/SNkM4rS.jpg" alt="cover"><!--else--><!--    div.post-img-placeholder--><section class="is-flex-grow-2"><p class="has-text-weight-semibold" style="line-height: 20px; font-size: 14px"><a href="/2022/07/22/GBA%E5%9C%96%E5%BD%A2%E8%99%95%E7%90%86%E9%82%8F%E8%BC%AF%E6%A8%A1%E6%93%AC-%E4%B8%80/">GBA圖形處理邏輯模擬 (一)</a></p><time class="has-text-weight-semibold has-text-grey" datetime="2022-07-21T16:13:05.000Z">2022-07-22</time></section></li><li class="is-flex"><!-- change to element replace image placeholder--><img class="js-img-fadeIn" src="https://i.imgur.com/t0NzpK9.jpg" alt="cover"><!--else--><!--    div.post-img-placeholder--><section class="is-flex-grow-2"><p class="has-text-weight-semibold" style="line-height: 20px; font-size: 14px"><a href="/2022/07/19/hardirq/">GBA的軟體中斷與其相對應的處理</a></p><time class="has-text-weight-semibold has-text-grey" datetime="2022-07-19T10:35:23.000Z">2022-07-19</time></section></li></ul></main><main class="aside-card-container archives-widget"><h3>Archives</h3><section><ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/08/">August 2022</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/07/">July 2022</a><span class="archive-list-count">2</span></li></ul></section></main><main class="aside-card-container tag-widget"><h3>Tags</h3><section><a href="/tags/linear%20Algebra"><span class="tag post-item-tag" style="margin-bottom: 5px;">linear Algebra</span></a><a href="/tags/math"><span class="tag post-item-tag" style="margin-bottom: 5px;">math</span></a><a href="/tags/GBA"><span class="tag post-item-tag" style="margin-bottom: 5px;">GBA</span></a><a href="/tags/emulator"><span class="tag post-item-tag" style="margin-bottom: 5px;">emulator</span></a><a href="/tags/graphics"><span class="tag post-item-tag" style="margin-bottom: 5px;">graphics</span></a><a href="/tags/ARM"><span class="tag post-item-tag" style="margin-bottom: 5px;">ARM</span></a><a href="/tags/system%20programming"><span class="tag post-item-tag" style="margin-bottom: 5px;">system programming</span></a></section></main></aside></div></article><script>$claudia.fadeInImage(null, $claudia.blurBackdropImg)
 
 window.addEventListener('resize', $claudia.throttle(function () {
     var images = document.querySelectorAll('.js-img-fadeIn')
