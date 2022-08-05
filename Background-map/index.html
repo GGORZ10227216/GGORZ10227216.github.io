@@ -211,27 +211,49 @@ data以二維排列而成的記憶體區塊，我們可以回顧一下這張表�
 <p>其中我們可以注意到<strong>Character format BG
 screen</strong>下有一個size的欄位，裏頭描述幾種螢幕大小組合，但可以確定的是都與我們所知道的GBA螢幕大小240*160不同</p>
 <p>這就是所謂的Virtual
-screen機制，我們可以把他想像成我們利用一個240*160的取景視窗，在一個很大的虛構區域內移動，接下來我們要來討論兩個重點:
-1. 虛構區域的大小 - 我們能夠移動的虛構區域大小是依靠BG_CNT中的Screen
-size控制的，其大小如下表所述: <img src="https://i.imgur.com/92fnJAs.png"> -
-圖表中明確提到了Text/Affine的狀態下，map data的尺寸與記憶體占用皆不同 2.
-如何移動可視範圍 - 我們在確認Virtual
+screen機制，我們可以把他想像成我們利用一個240*160的取景視窗，在一個很大的虛構區域內移動，接下來我們要來討論兩個重點:</p>
+<ol type="1">
+<li>虛構區域的大小
+<ul>
+<li>我們能夠移動的虛構區域大小是依靠BG_CNT中的Screen
+size控制的，其大小如下表所述: <img src="https://i.imgur.com/92fnJAs.png"></li>
+<li>圖表中明確提到了Text/Affine的狀態下，map
+data的尺寸與記憶體占用皆不同</li>
+</ul></li>
+<li>如何移動可視範圍
+<ul>
+<li><p>我們在確認Virtual
 screen的大小後，下一步自然就是要把取景範圍移動到我們想要的地方，這一個步驟在Text
-BG與Affine BG下的操作方式並不相同: - Text BG:
+BG與Affine BG下的操作方式並不相同:</p>
+<ul>
+<li>Text BG:
 我們需要調整HOFS以及VOFS兩個register來移動取景範圍的左上角座標，如果這兩個暫存器的數值超過的virtual
-screen的尺寸的話，真正對應到的數值將會被 %screen size <img src="https://i.imgur.com/AjAo0YT.png"></p>
-<pre><code>    不同的Screen size，移動時看起來會像是這樣
-    
-    ![](https://i.imgur.com/OnPul00.png)
-    
-    - Affine BG:Affine模式下是直接依靠仿射矩陣來決定每一個螢幕上的pixel對應到的tile data，因此並不需要依靠HOFS以及VOFS，詳細請見[GBA圖形處理邏輯模擬 - Affine background](/CwJ9l02WSeqwf7bM_Io5Ew)</code></pre>
+screen的尺寸的話，真正對應到的數值將會被 %screen size <img src="https://i.imgur.com/AjAo0YT.png"></li>
+</ul>
+<p>不同的Screen size，移動時看起來會像是這樣</p>
+<p><img src="https://i.imgur.com/OnPul00.png"></p>
+<ul>
+<li>Affine
+BG:Affine模式下是直接依靠仿射矩陣來決定每一個螢幕上的pixel對應到的tile
+data，因此並不需要依靠HOFS以及VOFS，詳細請見<a href="/CwJ9l02WSeqwf7bM_Io5Ew">GBA圖形處理邏輯模擬 - Affine
+background</a></li>
+</ul></li>
+</ul></li>
+</ol>
 <h2 id="address-formula">Address formula</h2>
 <p>最後附上一個Text BG計算某一個screen
-pixel，其所在的tile對應到那一個map data的計算公式: - Physical screen X,
-Y = Sx, Sy - Virtual Screen Width, Height = Vw, Vh - Viewing area X =
-(Sx + HOFS) % Vw = S_vx, Viewing area Y = (Sy + VOFS) % Vh = S_vy -
-Screen Base Block in BG_CNT = Sb - map data address = 0x0600'0000 +
-(0x800 * Sb) + {((Vw / 8)*(S_vy / 8)) + (S_vx / 8)} * 2 -
-每一個tile為8*8，所以S_v(x|y) / 8是為了把pixel XY轉換為tile XY -
-最後*2是因為Text BG每一個map data為2 bytes</p>
+pixel，其所在的tile對應到那一個map data的計算公式:</p>
+<ul>
+<li>Physical screen X, Y = Sx, Sy</li>
+<li>Virtual Screen Width, Height = Vw, Vh</li>
+<li>Viewing area X = (Sx + HOFS) % Vw = S_vx, Viewing area Y = (Sy +
+VOFS) % Vh = S_vy</li>
+<li>Screen Base Block in BG_CNT = Sb</li>
+<li>map data address = 0x0600'0000 + (0x800 * Sb) + {((Vw / 8)*(S_vy /
+8)) + (S_vx / 8)} * 2
+<ul>
+<li>每一個tile為8*8，所以S_v(x|y) / 8是為了把pixel XY轉換為tile XY</li>
+<li>最後*2是因為Text BG每一個map data為2 bytes</li>
+</ul></li>
+</ul>
 </article><section class="jump-container is-flex is-justify-content-space-between my-6"><!-- em is empty placeholder--><a class="button is-default" href="/Tile-format/" title="GBA圖形處理邏輯模擬 - Tile format"><i class="iconfont icon-prev mr-2 has-text-grey"></i><span class="has-text-weight-semibold">Previous: GBA圖形處理邏輯模擬 - Tile format</span></a><a class="button is-default" href="/Affine-background/" title="GBA圖形處理邏輯模擬 - Affine background"><span class="has-text-weight-semibold">Next: GBA圖形處理邏輯模擬 - Affine background</span><i class="iconfont icon-next ml-2 has-text-grey"></i></a></section><article class="mt-6 comment-container"><script async repo="Haojen/Claudia-theme-blog" src="https://utteranc.es/client.js" issue-term="pathname" theme="preferred-color-scheme"></script></article></div></div></main></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GGORZ10227216"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><!-- 知乎--><!-- 领英--><!-- 脸书--></section><p><span>Copyright ©</span><span> 0rzgg 2022</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" target="_blank" rel="noopener" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" target="_blank" rel="noopener" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script src="/js/post.js"></script></body></html>

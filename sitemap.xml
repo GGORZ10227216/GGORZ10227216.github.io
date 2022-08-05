@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://ggorz10227216.github.io/Background-map/</loc>
+    
+    <lastmod>2022-08-05</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://ggorz10227216.github.io/autoecho/</loc>
     
     <lastmod>2022-08-05</lastmod>
@@ -21,15 +30,6 @@
   
   <url>
     <loc>https://ggorz10227216.github.io/Affine-background/</loc>
-    
-    <lastmod>2022-08-03</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>https://ggorz10227216.github.io/Background-map/</loc>
     
     <lastmod>2022-08-03</lastmod>
     
@@ -154,20 +154,6 @@
   </url>
   
   <url>
-    <loc>https://ggorz10227216.github.io/tags/ARM/</loc>
-    <lastmod>2022-08-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://ggorz10227216.github.io/tags/system-programming/</loc>
-    <lastmod>2022-08-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://ggorz10227216.github.io/tags/C/</loc>
     <lastmod>2022-08-05</lastmod>
     <changefreq>weekly</changefreq>
@@ -190,6 +176,20 @@
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/asynchronous-IO/</loc>
+    <lastmod>2022-08-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://ggorz10227216.github.io/tags/ARM/</loc>
+    <lastmod>2022-08-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://ggorz10227216.github.io/tags/system-programming/</loc>
     <lastmod>2022-08-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
