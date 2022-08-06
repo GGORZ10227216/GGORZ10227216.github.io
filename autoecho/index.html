@@ -1,20 +1,86 @@
-<!DOCTYPE html><html class="appearance-auto" lang="en"><head><meta charset="UTF-8"><title>boost::asio + boost::fiber之上下文切換機制</title><meta name="description" content="compilation terminated."><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
-<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/images/favicon.png"><link rel="stylesheet" href="/style/common/bulma.css"><link rel="stylesheet" href="/style/base.css"><link rel="stylesheet" href="/style/common/helper.css"><script src="/js/common.js"></script><link rel="stylesheet" href="/style/post.css"><link rel="stylesheet" href="/style/themes/highlight-theme-light.css"><script src="/js/highlight.pack.js"></script><meta name="description" content="最近剛好在研究boost::asio，在研究官方範例的時候發現與fiber連動的code，感覺有點玄妙，來寫篇筆記
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-Autoecho
-
-autoecho.cpp
-
-這個範例基本上就是在同一個process內開一個tcp
-server跟數個client，client會發送一個字串給server，然後server會把該字串echo回去
-乍看之下蠻無聊的，但關鍵是這個程式只有一條thread在工作，所有的concurrency都是靠fiber在做
-萬事起頭難，我們先來很快地審視過main()在幹嘛
+<link rel="stylesheet" href="/css/main.css">
 
 
-int main( int argc, char* argv[]) {
-    try {
-//[asio_rr_setup
-        std::shared_ptr&amp;lt; .."><meta name="generator" content="Hexo 6.2.0"><style>mjx-container[jax="SVG"] {
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ggorz10227216.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="最近剛好在研究boost::asio，在研究官方範例的時候發現與fiber連動的code，感覺有點玄妙，來寫篇筆記">
+<meta property="og:type" content="article">
+<meta property="og:title" content="boost::asio + boost::fiber之上下文切換機制">
+<meta property="og:url" content="https://ggorz10227216.github.io/autoecho/index.html">
+<meta property="og:site_name" content="黃爸爸狗園">
+<meta property="og:description" content="最近剛好在研究boost::asio，在研究官方範例的時候發現與fiber連動的code，感覺有點玄妙，來寫篇筆記">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-08-05T17:25:20.000Z">
+<meta property="article:modified_time" content="2022-08-06T14:01:09.943Z">
+<meta property="article:author" content="0rzgg">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="networking">
+<meta property="article:tag" content="Boost">
+<meta property="article:tag" content="asynchronous_IO">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://ggorz10227216.github.io/autoecho/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>boost::asio + boost::fiber之上下文切換機制 | 黃爸爸狗園</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<style>mjx-container[jax="SVG"] {
   direction: ltr;
 }
 
@@ -127,7 +193,119 @@ mjx-container[display="true"] + br {
   display: none;
 }
 </style><link rel="alternate" href="/atom.xml" title="黃爸爸狗園" type="application/atom+xml">
-</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/">0rzgg's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><div class="is-full-height" id="postTopic"><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">boost::asio + boost::fiber之上下文切換機制</p><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">Click back to the top</p></div></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></header><main><main class="container is-max-widescreen content section post-page pt-4 px-4"><div class="columns is-flex-desktop is-justify-content-center is-flex-direction-row-reverse"><div class="column is-3 is-hidden-mobile"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#autoecho"><span class="toc-text">Autoecho</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#async_something%E7%9A%84%E5%A5%A7%E7%A7%98"><span class="toc-text">async_something()的奧秘</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BB%B6%E4%BC%B8%E9%96%B1%E8%AE%80"><span class="toc-text">延伸閱讀</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%B5%90%E8%AB%96"><span class="toc-text">結論</span></a></li></ol></div><div class="column is-9"><header class="my-4"><a href="/tags/C++"><i class="tag post-item-tag">C++</i></a><a href="/tags/networking"><i class="tag post-item-tag">networking</i></a><a href="/tags/Boost"><i class="tag post-item-tag">Boost</i></a><a href="/tags/asynchronous_IO"><i class="tag post-item-tag">asynchronous_IO</i></a></header><h1 class="mt-0 mb-1 is-family-serif" id="postTitle">boost::asio + boost::fiber之上下文切換機制</h1><time class="has-text-grey" datetime="2022-08-05T17:25:20.000Z">2022-08-06</time><article class="mt-2 post-content"><p>最近剛好在研究boost::asio，在研究官方範例的時候發現與fiber連動的code，感覺有點玄妙，來寫篇筆記</p>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">黃爸爸狗園</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://ggorz10227216.github.io/autoecho/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="0rzgg">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="黃爸爸狗園">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          boost::asio + boost::fiber之上下文切換機制
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-08-06 01:25:20 / Modified: 22:01:09" itemprop="dateCreated datePublished" datetime="2022-08-06T01:25:20+08:00">2022-08-06</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近剛好在研究boost::asio，在研究官方範例的時候發現與fiber連動的code，感覺有點玄妙，來寫篇筆記</p>
 <span id="more"></span>
 <h2 id="autoecho">Autoecho</h2>
 <ul>
@@ -139,38 +317,7 @@ server跟數個client，client會發送一個字串給server，然後server會�
 <li>萬事起頭難，我們先來很快地審視過main()在幹嘛</li>
 </ul></li>
 </ul>
-<pre class="cpp="><code>int main( int argc, char* argv[]) {
-    try {
-//[asio_rr_setup
-        std::shared_ptr&lt; boost::asio::io_context &gt; io_ctx = std::make_shared&lt; boost::asio::io_context &gt;();
-        boost::fibers::use_scheduling_algorithm&lt; boost::fibers::asio::round_robin &gt;( io_ctx);
-//]
-        print( "Thread ", thread_names.lookup(), ": started");
-//[asio_rr_launch_fibers
-        // server
-        tcp::acceptor a( * io_ctx, tcp::endpoint( tcp::v4(), 9999) );
-        boost::fibers::fiber( server, io_ctx, std::ref( a) ).detach();
-        // client
-        const unsigned iterations = 2;
-        const unsigned clients = 3;
-        boost::fibers::barrier b( clients);
-        for ( unsigned i = 0; i &lt; clients; ++i) {
-            boost::fibers::fiber(
-                    client, io_ctx, std::ref( a), std::ref( b), iterations).detach();
-        }
-//]
-//[asio_rr_run
-        io_ctx-&gt;run();
-//]
-        print( tag(), ": io_context returned");
-        print( "Thread ", thread_names.lookup(), ": stopping");
-        std::cout &lt;&lt; "done." &lt;&lt; std::endl;
-        return EXIT_SUCCESS;
-    } catch ( std::exception const&amp; e) {
-        print("Exception: ", e.what(), "\n");
-    }
-    return EXIT_FAILURE;
-}</code></pre>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">( <span class="type">int</span> argc, <span class="type">char</span>* argv[])</span> </span>{</span><br><span class="line">    <span class="keyword">try</span> {</span><br><span class="line"><span class="comment">//[asio_rr_setup</span></span><br><span class="line">        std::shared_ptr&lt; boost::asio::io_context &gt; io_ctx = std::<span class="built_in">make_shared</span>&lt; boost::asio::io_context &gt;();</span><br><span class="line">        boost::fibers::<span class="built_in">use_scheduling_algorithm</span>&lt; boost::fibers::asio::round_robin &gt;( io_ctx);</span><br><span class="line"><span class="comment">//]</span></span><br><span class="line">        <span class="built_in">print</span>( <span class="string">"Thread "</span>, thread_names.<span class="built_in">lookup</span>(), <span class="string">": started"</span>);</span><br><span class="line"><span class="comment">//[asio_rr_launch_fibers</span></span><br><span class="line">        <span class="comment">// server</span></span><br><span class="line">        <span class="function">tcp::acceptor <span class="title">a</span><span class="params">( * io_ctx, tcp::endpoint( tcp::v4(), <span class="number">9999</span>) )</span></span>;</span><br><span class="line">        boost::fibers::<span class="built_in">fiber</span>( server, io_ctx, std::<span class="built_in">ref</span>( a) ).<span class="built_in">detach</span>();</span><br><span class="line">        <span class="comment">// client</span></span><br><span class="line">        <span class="type">const</span> <span class="type">unsigned</span> iterations = <span class="number">2</span>;</span><br><span class="line">        <span class="type">const</span> <span class="type">unsigned</span> clients = <span class="number">3</span>;</span><br><span class="line">        boost::<span class="function">fibers::barrier <span class="title">b</span><span class="params">( clients)</span></span>;</span><br><span class="line">        <span class="keyword">for</span> ( <span class="type">unsigned</span> i = <span class="number">0</span>; i &lt; clients; ++i) {</span><br><span class="line">            boost::fibers::<span class="built_in">fiber</span>(</span><br><span class="line">                    client, io_ctx, std::<span class="built_in">ref</span>( a), std::<span class="built_in">ref</span>( b), iterations).<span class="built_in">detach</span>();</span><br><span class="line">        }</span><br><span class="line"><span class="comment">//]</span></span><br><span class="line"><span class="comment">//[asio_rr_run</span></span><br><span class="line">        io_ctx-&gt;<span class="built_in">run</span>();</span><br><span class="line"><span class="comment">//]</span></span><br><span class="line">        <span class="built_in">print</span>( <span class="built_in">tag</span>(), <span class="string">": io_context returned"</span>);</span><br><span class="line">        <span class="built_in">print</span>( <span class="string">"Thread "</span>, thread_names.<span class="built_in">lookup</span>(), <span class="string">": stopping"</span>);</span><br><span class="line">        std::cout &lt;&lt; <span class="string">"done."</span> &lt;&lt; std::endl;</span><br><span class="line">        <span class="keyword">return</span> EXIT_SUCCESS;</span><br><span class="line">    } <span class="built_in">catch</span> ( std::exception <span class="type">const</span>&amp; e) {</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"Exception: "</span>, e.<span class="built_in">what</span>(), <span class="string">"\n"</span>);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">return</span> EXIT_FAILURE;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
 <ul>
 <li>一開始先初始化io_context與設定fiber排成所用的algo為round
 robin，這沒有太大的問題</li>
@@ -181,27 +328,7 @@ robin，這沒有太大的問題</li>
 <ul>
 <li>我們可以從server()來切入問題</li>
 </ul>
-<pre class="cpp="><code>void server( std::shared_ptr&lt; boost::asio::io_context &gt; const&amp; io_ctx, tcp::acceptor &amp; a) {
-    print( tag(), ": echo-server started");
-    try {
-        for (;;) {
-            socket_ptr socket( new tcp::socket( * io_ctx) );
-            boost::system::error_code ec;
-            a.async_accept(
-                    * socket,
-                    boost::fibers::asio::yield[ec]);
-            if ( ec) {
-                throw boost::system::system_error( ec); //some other error
-            } else {
-                boost::fibers::fiber( session, socket).detach();
-            }
-        }
-    } catch ( std::exception const&amp; ex) {
-        print( tag(), ": caught exception : ", ex.what());
-    }
-    io_ctx-&gt;stop();
-    print( tag(), ": echo-server stopped");
-}</code></pre>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">server</span><span class="params">( std::shared_ptr&lt; boost::asio::io_context &gt; <span class="type">const</span>&amp; io_ctx, tcp::acceptor &amp; a)</span> </span>{</span><br><span class="line">    <span class="built_in">print</span>( <span class="built_in">tag</span>(), <span class="string">": echo-server started"</span>);</span><br><span class="line">    <span class="keyword">try</span> {</span><br><span class="line">        <span class="keyword">for</span> (;;) {</span><br><span class="line">            <span class="function">socket_ptr <span class="title">socket</span><span class="params">( <span class="keyword">new</span> tcp::socket( * io_ctx) )</span></span>;</span><br><span class="line">            boost::system::error_code ec;</span><br><span class="line">            a.<span class="built_in">async_accept</span>(</span><br><span class="line">                    * socket,</span><br><span class="line">                    boost::fibers::asio::yield[ec]);</span><br><span class="line">            <span class="keyword">if</span> ( ec) {</span><br><span class="line">                <span class="keyword">throw</span> boost::system::<span class="built_in">system_error</span>( ec); <span class="comment">//some other error</span></span><br><span class="line">            } <span class="keyword">else</span> {</span><br><span class="line">                boost::fibers::<span class="built_in">fiber</span>( session, socket).<span class="built_in">detach</span>();</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">    } <span class="built_in">catch</span> ( std::exception <span class="type">const</span>&amp; ex) {</span><br><span class="line">        <span class="built_in">print</span>( <span class="built_in">tag</span>(), <span class="string">": caught exception : "</span>, ex.<span class="built_in">what</span>());</span><br><span class="line">    }</span><br><span class="line">    io_ctx-&gt;<span class="built_in">stop</span>();</span><br><span class="line">    <span class="built_in">print</span>( <span class="built_in">tag</span>(), <span class="string">": echo-server stopped"</span>);</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
 <ul>
 <li>我們的server
 fiber實體長這樣，但實際上只有做一個accept()動作，實際上處理連線的部份我們晚點會講</li>
@@ -212,17 +339,8 @@ a去等待client的連線，async_accept()
 <ul>
 <li>喔齁!?</li>
 </ul></li>
-<li>來看一下async_accept()的signature，看看他是何方神聖</li>
-</ul>
-<pre class="cpp="><code>  template&lt;
-    typename Protocol1,
-    typename Executor1,
-    typename AcceptToken = DEFAULT&gt;
-  DEDUCED async_accept(
-    basic_socket&lt; Protocol1, Executor1 &gt; &amp; peer,
-    AcceptToken &amp;&amp; token = DEFAULT,
-    typename constraint&lt; is_convertible&lt; Protocol, Protocol1 &gt;::value &gt;::type  = 0);</code></pre>
-<ul>
+<li>來看一下async_accept()的signature，看看他是何方神聖
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;</span></span><br><span class="line"><span class="function">  <span class="keyword">typename</span> Protocol1,</span></span><br><span class="line"><span class="function">  <span class="keyword">typename</span> Executor1,</span></span><br><span class="line"><span class="function">  <span class="keyword">typename</span> AcceptToken </span>= DEFAULT&gt;</span><br><span class="line"><span class="function">DEDUCED <span class="title">async_accept</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">  basic_socket&lt; Protocol1, Executor1 &gt; &amp; peer,</span></span></span><br><span class="line"><span class="params"><span class="function">  AcceptToken &amp;&amp; token = DEFAULT,</span></span></span><br><span class="line"><span class="params"><span class="function">  <span class="keyword">typename</span> constraint&lt; is_convertible&lt; Protocol, Protocol1 &gt;::value &gt;::type  = <span class="number">0</span>)</span></span>;</span><br></pre></td></tr></table></figure></li>
 <li>所以async_accept()要一個socket跟一個<strong>AcceptToken</strong>
 <ul>
 <li>socket沒問題，重點是那個AcceptToken到底是什麼咚咚?</li>
@@ -231,61 +349,17 @@ code來做後續處理
 <ul>
 <li>就是async_accept()的callback拉</li>
 </ul></li>
-<li>但很顯然的，這個例子不是這樣</li>
-</ul>
-<pre class="cpp="><code>  a.async_accept(* socket, boost::fibers::asio::yield[ec]);</code></pre>
-<ul>
+<li>但很顯然的，這個例子不是這樣 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a.<span class="built_in">async_accept</span>(* socket, boost::fibers::asio::yield[ec]);</span><br></pre></td></tr></table></figure></li>
 <li>媽的貢丸，boost::fibers::asio::yield[ec]是啥玩意?
 <ul>
-<li>持續trace code，找到其定義</li>
+<li>持續trace code，找到其定義 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> boost {</span><br><span class="line"><span class="keyword">namespace</span> fibers {</span><br><span class="line"><span class="keyword">namespace</span> asio { </span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">yield_t</span> {</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        <span class="built_in">yield_t</span>() = <span class="keyword">default</span>;</span><br><span class="line"></span><br><span class="line">        <span class="type">yield_t</span> <span class="keyword">operator</span>[]( boost::system::error_code &amp; ec) <span class="type">const</span>                   {</span><br><span class="line">            <span class="type">yield_t</span> tmp;</span><br><span class="line">            tmp.ec_ = &amp; ec;</span><br><span class="line">            <span class="keyword">return</span> tmp;</span><br><span class="line">        }</span><br><span class="line">        </span><br><span class="line">        boost::system::error_code   *   ec_{ <span class="literal">nullptr</span> };</span><br><span class="line">  };</span><br><span class="line"></span><br><span class="line"><span class="keyword">thread_local</span> <span class="type">yield_t</span> yield{};</span><br><span class="line">}}}</span><br></pre></td></tr></table></figure></li>
 </ul></li>
-<li><pre class="cpp="><code>namespace boost {
-namespace fibers {
-namespace asio { 
-    class yield_t {
-    public:
-        yield_t() = default;
-
-        yield_t operator[]( boost::system::error_code &amp; ec) const                   {
-            yield_t tmp;
-            tmp.ec_ = &amp; ec;
-            return tmp;
-        }
-
-        boost::system::error_code   *   ec_{ nullptr };
-  };
-
-thread_local yield_t yield{};
-}}}</code></pre></li>
 <li>好樣的，我們觸發了他的operator[]，具體只是把我們server()中的ec的addr綁到位於thread_local的yield上</li>
 <li>然後作為<strong>AcceptToken</strong>傳遞給async_accept()，我的老天鵝，yield_t又沒有operator()，到底是怎麼樣變出callback的?</li>
 <li>讓我們繼續往更深層跳......</li>
-<li>我們一路step in，會看到一個關鍵位置</li>
-</ul>
-<pre class="cpp="><code>  typedef typename boost::asio::async_result&lt;
-      typename decay&lt;CompletionToken&gt;::type,
-      Signature&gt;::completion_handler_type completion_handler_type; 
-    /*一些其他的code*/
-    explicit async_completion(CompletionToken&amp; token)
-          : completion_handler(static_cast&lt;typename conditional&lt;
-            is_same&lt;CompletionToken, completion_handler_type&gt;::value,
-            completion_handler_type&amp;, CompletionToken&amp;&amp;&gt;::type&gt;(token)),
-            result(completion_handler)
-    {
-    }</code></pre>
-<ul>
-<li>哇，酷喔，因為我們給的AcceptToken是yield_t，導致上面的completion_handler_type被推導成<code>async_result&lt; boost::fibers::asio::yield_t, void(boost::system::error_code) &gt;</code></li>
-<li>還真的有一個partial specialization長這樣</li>
-<li><pre class="cpp="><code>    template&lt;&gt;
-    class async_result&lt; boost::fibers::asio::yield_t, void(boost::system::error_code) &gt; :
-      public boost::fibers::asio::detail::async_result_base {
-      public:
-          using return_type = void;
-          using completion_handler_type = fibers::asio::detail::yield_handler&lt;void&gt;;
-
-          explicit async_result( boost::fibers::asio::detail::yield_handler&lt; void &gt; &amp; h):
-          boost::fibers::asio::detail::async_result_base{ h } {}
-    };</code></pre>
+<li>我們一路step in，會看到一個關鍵位置 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">typename</span> boost::asio::async_result&lt;</span><br><span class="line">          <span class="keyword">typename</span> decay&lt;CompletionToken&gt;::type,</span><br><span class="line">          Signature&gt;::completion_handler_type completion_handler_type; </span><br><span class="line">        <span class="comment">/*一些其他的code*/</span></span><br><span class="line">        <span class="function"><span class="keyword">explicit</span> <span class="title">async_completion</span><span class="params">(CompletionToken&amp; token)</span></span></span><br><span class="line"><span class="function">              : completion_handler(static_cast&lt;typename conditional&lt;</span></span><br><span class="line"><span class="function">                is_same&lt;CompletionToken, completion_handler_type&gt;::value,</span></span><br><span class="line"><span class="function">                completion_handler_type&amp;, CompletionToken&amp;&amp;&gt;::type&gt;(token)),</span></span><br><span class="line"><span class="function">                result(completion_handler)</span></span><br><span class="line"><span class="function">        {</span></span><br><span class="line">        }</span><br></pre></td></tr></table></figure></li>
+<li>哇，酷喔，因為我們給的AcceptToken是yield_t，導致上面的completion_handler_type被推導成<code>async_result&lt; boost::fibers::asio::yield_t, void(boost::system::error_code) &gt;::completion_handler_type</code></li>
+<li>還真的有一個partial specialization長這樣 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">async_result</span>&lt; boost::fibers::asio::<span class="type">yield_t</span>, <span class="built_in">void</span>(boost::system::error_code) &gt; :</span><br><span class="line">  <span class="keyword">public</span> boost::fibers::asio::detail::async_result_base {</span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">      <span class="keyword">using</span> return_type = <span class="type">void</span>;</span><br><span class="line">      <span class="keyword">using</span> completion_handler_type = fibers::asio::detail::yield_handler&lt;<span class="type">void</span>&gt;;</span><br><span class="line"></span><br><span class="line">      <span class="function"><span class="keyword">explicit</span> <span class="title">async_result</span><span class="params">( boost::fibers::asio::detail::yield_handler&lt; <span class="type">void</span> &gt; &amp; h)</span>:</span></span><br><span class="line"><span class="function">      boost::fibers::asio::detail::async_result_base{</span> h } {}</span><br><span class="line">};</span><br></pre></td></tr></table></figure>
 <ul>
 <li>你，看到了嗎.....?那個潛伏在陰暗角落，蠢蠢欲動的completion_handler_type</li>
 </ul></li>
@@ -293,52 +367,13 @@ thread_local yield_t yield{};
 <li>這個咚咚可就厲害了，它可是有operator()的!!
 <ul>
 <li>但不要忘記，他還有個base class，一樣也有一個operator()</li>
-<li>先來看一下yield_handler的operator()</li>
-<li><pre class="cpp="><code>void operator()(boost::system::error_code const&amp; ec, T t) {
-    BOOST_ASSERT_MSG( value_,
-            "Must inject value ptr "
-            "before caling yield_handler&lt;T&gt;::operator()()");
-
-    * value_ = std::move( t);
-    yield_handler_base::operator()(ec);
-}</code></pre></li>
+<li>先來看一下yield_handler的operator() <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">operator</span><span class="params">()</span><span class="params">(boost::system::error_code <span class="type">const</span>&amp; ec, T t)</span> </span>{</span><br><span class="line">    <span class="built_in">BOOST_ASSERT_MSG</span>( value_,</span><br><span class="line">            <span class="string">"Must inject value ptr "</span></span><br><span class="line">            <span class="string">"before caling yield_handler&lt;T&gt;::operator()()"</span>);</span><br><span class="line">        </span><br><span class="line">    * value_ = std::<span class="built_in">move</span>( t);</span><br><span class="line">    yield_handler_base::<span class="built_in">operator</span>()(ec);</span><br><span class="line">}</span><br></pre></td></tr></table></figure></li>
 <li>我們可以看到value_(就是我們的socket)，會被assign
 t，這個t就是當async_accept()完成之後會得到的socket</li>
-<li>接線來就會繼續call yield_handler_base的operator()</li>
+<li>接下來就會繼續call yield_handler_base的operator()</li>
 <li>所以我們現在知道，AcceptToken給yield_t，最後async_accept()完事之後會呼叫的callback來自這裡</li>
 </ul></li>
-<li>我們接著來看yield_handler_base的operator()做了啥?</li>
-<li><pre class="cpp="><code>class yield_handler_base {
-    public:
-        yield_handler_base( yield_t const&amp; y) :
-            ctx_{ boost::fibers::context::active() },
-            yt_( y ) {}
-
-        void operator()( boost::system::error_code const&amp; ec) {
-            BOOST_ASSERT_MSG( ycomp_,
-                "Must inject yield_completion* "
-                "before calling yield_handler_base::operator()()");
-            BOOST_ASSERT_MSG( yt_.ec_,
-                "Must inject boost::system::error_code* "
-                "before calling yield_handler_base::operator()()");
-
-            yield_completion::lock_t lk{ ycomp_-&gt;mtx_ };
-            yield_completion::state_t state = ycomp_-&gt;state_;
-
-            ycomp_-&gt;state_ = yield_completion::complete;
-
-            * yt_.ec_ = ec;
-            lk.unlock();
-            if ( yield_completion::waiting == state) {
-                // wake the fiber
-                fibers::context::active()-&gt;schedule( ctx_);
-            }
-        }
-
-      boost::fibers::context      *   ctx_;
-      yield_t                         yt_;
-      yield_completion::ptr_t         ycomp_{};
-};</code></pre></li>
+<li>我們接著來看yield_handler_base的operator()做了啥? <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">yield_handler_base</span> {</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        <span class="built_in">yield_handler_base</span>( <span class="type">yield_t</span> <span class="type">const</span>&amp; y) :</span><br><span class="line">            ctx_{ boost::fibers::context::<span class="built_in">active</span>() },</span><br><span class="line">            <span class="built_in">yt_</span>( y ) {}</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="type">void</span> <span class="title">operator</span><span class="params">()</span><span class="params">( boost::system::error_code <span class="type">const</span>&amp; ec)</span> </span>{</span><br><span class="line">            <span class="built_in">BOOST_ASSERT_MSG</span>( ycomp_,</span><br><span class="line">                <span class="string">"Must inject yield_completion* "</span></span><br><span class="line">                <span class="string">"before calling yield_handler_base::operator()()"</span>);</span><br><span class="line">            <span class="built_in">BOOST_ASSERT_MSG</span>( yt_.ec_,</span><br><span class="line">                <span class="string">"Must inject boost::system::error_code* "</span></span><br><span class="line">                <span class="string">"before calling yield_handler_base::operator()()"</span>);</span><br><span class="line"></span><br><span class="line">            yield_completion::<span class="type">lock_t</span> lk{ ycomp_-&gt;mtx_ };</span><br><span class="line">            yield_completion::<span class="type">state_t</span> state = ycomp_-&gt;state_;</span><br><span class="line"></span><br><span class="line">            ycomp_-&gt;state_ = yield_completion::complete;</span><br><span class="line"></span><br><span class="line">            * yt_.ec_ = ec;</span><br><span class="line">            lk.<span class="built_in">unlock</span>();</span><br><span class="line">            <span class="keyword">if</span> ( yield_completion::waiting == state) {</span><br><span class="line">                <span class="comment">// wake the fiber</span></span><br><span class="line">                fibers::context::<span class="built_in">active</span>()-&gt;<span class="built_in">schedule</span>( ctx_);</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">        </span><br><span class="line">      boost::fibers::context      *   ctx_;</span><br><span class="line">      <span class="type">yield_t</span>                         yt_;</span><br><span class="line">      yield_completion::<span class="type">ptr_t</span>         ycomp_{};</span><br><span class="line">};</span><br></pre></td></tr></table></figure></li>
 <li>兩個重點
 <ul>
 <li><code>* yt_.ec_ = ec;</code>會把真正的error
@@ -353,42 +388,10 @@ fiber的context排進排程裏頭，讓他盡快被跑起來</li>
 <ul>
 <li>async_開頭的function都是non-blocking的，所以不會卡在原地</li>
 <li>但看起來也不像是回到server fiber......</li>
-<li>我們可以在往下看，我們的async_accept()事實上背後接著一個async_initiate()，這個東西內部有一個玄機</li>
-<li><pre class="cpp="><code>template &lt;typename CompletionToken,
-      BOOST_ASIO_COMPLETION_SIGNATURE Signature,
-      typename Initiation, typename... Args&gt;
-  inline typename enable_if&lt;
-      !detail::async_result_has_initiate_memfn&lt;CompletionToken, Signature&gt;::value,
-      BOOST_ASIO_INITFN_RESULT_TYPE(CompletionToken, Signature)&gt;::type
-  async_initiate(BOOST_ASIO_MOVE_ARG(Initiation) initiation,
-      BOOST_ASIO_NONDEDUCED_MOVE_ARG(CompletionToken) token,
-      BOOST_ASIO_MOVE_ARG(Args)... args)
-  {
-    async_completion&lt;CompletionToken, Signature&gt; completion(token);
-
-    BOOST_ASIO_MOVE_CAST(Initiation)(initiation)(
-        BOOST_ASIO_MOVE_CAST(BOOST_ASIO_HANDLER_TYPE(CompletionToken,
-          Signature))(completion.completion_handler),
-        BOOST_ASIO_MOVE_CAST(Args)(args)...);
-
-    return completion.result.get();
-  }</code></pre></li>
-<li>最後的那個completion.result.get()是關鍵，我們一個step進去看一看</li>
-<li><pre class="cpp="><code>void get() {
-     ycomp_-&gt;wait();
-     if ( ec_) {
-         throw_exception( boost::system::system_error{ ec_ } );
-     }
-}
-
-/*再來直接看ycomp-&gt;wait()*/
-void wait() {
-     lock_t lk{ mtx_ };
-     if ( complete != state_) {
-         state_ = waiting;
-         fibers::context::active()-&gt;suspend( lk); // !!
-     }
-}</code></pre></li>
+<li>我們可以在往下看，我們的async_accept()事實上背後接著一個async_initiate()，這個東西內部有一個玄機
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> CompletionToken,</span><br><span class="line">      BOOST_ASIO_COMPLETION_SIGNATURE Signature,</span><br><span class="line">      <span class="keyword">typename</span> Initiation, <span class="keyword">typename</span>... Args&gt;</span><br><span class="line">  <span class="keyword">inline</span> <span class="keyword">typename</span> enable_if&lt;</span><br><span class="line">      !detail::async_result_has_initiate_memfn&lt;CompletionToken, Signature&gt;::value,</span><br><span class="line">      <span class="built_in">BOOST_ASIO_INITFN_RESULT_TYPE</span>(CompletionToken, Signature)&gt;::<span class="function">type</span></span><br><span class="line"><span class="function">  <span class="title">async_initiate</span><span class="params">(BOOST_ASIO_MOVE_ARG(Initiation) initiation,</span></span></span><br><span class="line"><span class="params"><span class="function">      BOOST_ASIO_NONDEDUCED_MOVE_ARG(CompletionToken) token,</span></span></span><br><span class="line"><span class="params"><span class="function">      BOOST_ASIO_MOVE_ARG(Args)... args)</span></span></span><br><span class="line"><span class="function">  </span>{</span><br><span class="line">    <span class="function">async_completion&lt;CompletionToken, Signature&gt; <span class="title">completion</span><span class="params">(token)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">BOOST_ASIO_MOVE_CAST</span>(Initiation)(initiation)(</span><br><span class="line">        <span class="built_in">BOOST_ASIO_MOVE_CAST</span>(<span class="built_in">BOOST_ASIO_HANDLER_TYPE</span>(CompletionToken,</span><br><span class="line">          Signature))(completion.completion_handler),</span><br><span class="line">        <span class="built_in">BOOST_ASIO_MOVE_CAST</span>(Args)(args)...);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> completion.result.<span class="built_in">get</span>();</span><br><span class="line">  }</span><br></pre></td></tr></table></figure></li>
+<li>最後的那個completion.result.get()是關鍵，我們一個step進去看一看
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">get</span><span class="params">()</span> </span>{</span><br><span class="line">     ycomp_-&gt;<span class="built_in">wait</span>();</span><br><span class="line">     <span class="keyword">if</span> ( ec_) {</span><br><span class="line">         <span class="built_in">throw_exception</span>( boost::system::system_error{ ec_ } );</span><br><span class="line">     }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">/*再來直接看ycomp-&gt;wait()*/</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">wait</span><span class="params">()</span> </span>{</span><br><span class="line">     <span class="type">lock_t</span> lk{ mtx_ };</span><br><span class="line">     <span class="keyword">if</span> ( complete != state_) {</span><br><span class="line">         state_ = waiting;</span><br><span class="line">         fibers::context::<span class="built_in">active</span>()-&gt;<span class="built_in">suspend</span>( lk); <span class="comment">// !!</span></span><br><span class="line">     }</span><br><span class="line">}</span><br></pre></td></tr></table></figure></li>
 <li>不看不知道，一看不得了，上面這段code說了啥?
 <ul>
 <li>假設我們呼叫get()的時候，ycomp的state不是complete(換言之，callback還沒有被跑過)，那基本上進去wait()就會觸發fibers::context::active()-&gt;suspend()</li>
@@ -414,4 +417,197 @@ overview</a></li>
 </ul>
 <h2 id="結論">結論</h2>
 <p>想不到吧，Alice居然就是Bob!</p>
-</article><section class="jump-container is-flex is-justify-content-space-between my-6"><!-- em is empty placeholder--><em></em><a class="button is-default" href="/Tile-mode/" title="GBA圖形處理邏輯模擬(二) - Tile mode"><span class="has-text-weight-semibold">Next: GBA圖形處理邏輯模擬(二) - Tile mode</span><i class="iconfont icon-next ml-2 has-text-grey"></i></a></section><article class="mt-6 comment-container"><script async repo="Haojen/Claudia-theme-blog" src="https://utteranc.es/client.js" issue-term="pathname" theme="preferred-color-scheme"></script></article></div></div></main></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GGORZ10227216"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><!-- 知乎--><!-- 领英--><!-- 脸书--></section><p><span>Copyright ©</span><span> 0rzgg 2022</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" target="_blank" rel="noopener" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" target="_blank" rel="noopener" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script src="/js/post.js"></script></body></html>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C/" rel="tag"># C++</a>
+              <a href="/tags/networking/" rel="tag"># networking</a>
+              <a href="/tags/Boost/" rel="tag"># Boost</a>
+              <a href="/tags/asynchronous-IO/" rel="tag"># asynchronous_IO</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/Tile-mode/" rel="prev" title="GBA圖形處理邏輯模擬(二) - Tile mode">
+      <i class="fa fa-chevron-left"></i> GBA圖形處理邏輯模擬(二) - Tile mode
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/simple-std-function/" rel="next" title="A Simplified std::function Implementation">
+      A Simplified std::function Implementation <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#autoecho"><span class="nav-number">1.</span> <span class="nav-text">Autoecho</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#async_something%E7%9A%84%E5%A5%A7%E7%A7%98"><span class="nav-number">2.</span> <span class="nav-text">async_something()的奧秘</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%B6%E4%BC%B8%E9%96%B1%E8%AE%80"><span class="nav-number">3.</span> <span class="nav-text">延伸閱讀</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B5%90%E8%AB%96"><span class="nav-number">4.</span> <span class="nav-text">結論</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">0rzgg</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">0rzgg</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

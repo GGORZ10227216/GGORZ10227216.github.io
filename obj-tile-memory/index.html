@@ -1,28 +1,89 @@
-<!DOCTYPE html><html class="appearance-auto" lang="en"><head><meta charset="UTF-8"><title>GBA圖形處理邏輯模擬 - Object tile memory</title><meta name="description" content="compilation terminated."><meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, initial-scale=1"><!-- Google Analytics --><!-- End Google Analytics -->
-<!-- Baidu Analytics --><!-- End Baidu Analytics --><link rel="icon" href="/images/favicon.png"><link rel="stylesheet" href="/style/common/bulma.css"><link rel="stylesheet" href="/style/base.css"><link rel="stylesheet" href="/style/common/helper.css"><script src="/js/common.js"></script><link rel="stylesheet" href="/style/post.css"><link rel="stylesheet" href="/style/themes/highlight-theme-light.css"><script src="/js/highlight.pack.js"></script><meta name="description" content="
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-cover
-
-相較於BG tile的排列是依靠map data描述，obj tile並不存在map
-data，我們會直接透過character name來存取obj tile，但obj tile
-memory實際上有兩種不同的排列方式，本文將會分別說明這兩種方式的細節
-
-1 Dimensional
-
-1 Dimensional，又稱線性排列，指的就是8*8的tile
-data是依照記憶體位置一直往後排列，如下圖所述:
-
-
-
-1d_layout
+<link rel="stylesheet" href="/css/main.css">
 
 
-此排列方法雖然擁有比較高的空間效率，但並不便於美術人員設計obj
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
 
-2 Dimensional
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ggorz10227216.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
 
-2
-Dimensional，我稱呼它為平面排列，在這個模式下8*8的tile會依照真實obj所要求的樣子排列，如下圖.."><meta name="generator" content="Hexo 6.2.0"><style>mjx-container[jax="SVG"] {
+  <meta name="description" content="cover  相較於BG tile的排列是依靠map data描述，obj tile並不存在map data，我們會直接透過character name來存取obj tile，但obj tile memory實際上有兩種不同的排列方式，本文將會分別說明這兩種方式的細節">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GBA圖形處理邏輯模擬 - Object tile memory">
+<meta property="og:url" content="https://ggorz10227216.github.io/obj-tile-memory/index.html">
+<meta property="og:site_name" content="黃爸爸狗園">
+<meta property="og:description" content="cover  相較於BG tile的排列是依靠map data描述，obj tile並不存在map data，我們會直接透過character name來存取obj tile，但obj tile memory實際上有兩種不同的排列方式，本文將會分別說明這兩種方式的細節">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.imgur.com/SNkM4rS.jpg">
+<meta property="og:image" content="https://i.imgur.com/xkkxKEg.png">
+<meta property="og:image" content="https://i.imgur.com/AtbQu7E.png">
+<meta property="article:published_time" content="2022-08-03T16:06:57.000Z">
+<meta property="article:modified_time" content="2022-08-03T16:07:30.708Z">
+<meta property="article:author" content="0rzgg">
+<meta property="article:tag" content="GBA">
+<meta property="article:tag" content="emulator">
+<meta property="article:tag" content="graphics">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.imgur.com/SNkM4rS.jpg">
+
+<link rel="canonical" href="https://ggorz10227216.github.io/obj-tile-memory/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>GBA圖形處理邏輯模擬 - Object tile memory | 黃爸爸狗園</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<style>mjx-container[jax="SVG"] {
   direction: ltr;
 }
 
@@ -135,7 +196,119 @@ mjx-container[display="true"] + br {
   display: none;
 }
 </style><link rel="alternate" href="/atom.xml" title="黃爸爸狗園" type="application/atom+xml">
-</head><body class="is-flex is-flex-direction-column"><header class="header-widget is-flex-shrink-0 is-hidden-mobile"><div class="container is-fullhd is-flex is-justify-content-space-between is-align-items-center is-full-height"><section class="is-hidden-mobile is-flex-shrink-0"><h2><a href="/">0rzgg's blog</a></h2></section><h3 class="is-hidden-mobile is-family-serif is-full-height is-flex is-align-items-center is-flex-shrink-0"><div class="is-full-height" id="postTopic"><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">GBA圖形處理邏輯模擬 - Object tile memory</p><p class="is-full-height is-flex-shrink-0 is-flex is-align-items-center is-justify-content-center">Click back to the top</p></div></h3><aside class="is-flex-shrink-0"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></aside></div></header><header class="is-flex header-widget is-flex-shrink-0 is-align-items-center is-justify-content-center is-hidden-tablet"><h3 class="is-inline-block"><a href="/">Home</a></h3><h3 class="is-inline-block"><a href="/about">About</a></h3><h3 class="is-inline-block"><a href="/archives">Archives</a></h3></header><main><main class="container is-max-widescreen content section post-page pt-4 px-4"><div class="columns is-flex-desktop is-justify-content-center is-flex-direction-row-reverse"><div class="column is-3 is-hidden-mobile"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#dimensional"><span class="toc-text">1 Dimensional</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#dimensional-1"><span class="toc-text">2 Dimensional</span></a></li></ol></div><div class="column is-9"><header class="my-4"><a href="/tags/GBA"><i class="tag post-item-tag">GBA</i></a><a href="/tags/emulator"><i class="tag post-item-tag">emulator</i></a><a href="/tags/graphics"><i class="tag post-item-tag">graphics</i></a></header><h1 class="mt-0 mb-1 is-family-serif" id="postTitle">GBA圖形處理邏輯模擬 - Object tile memory</h1><time class="has-text-grey" datetime="2022-08-03T16:06:57.000Z">2022-08-04</time><article class="mt-2 post-content"><figure>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">黃爸爸狗園</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://ggorz10227216.github.io/obj-tile-memory/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="0rzgg">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="黃爸爸狗園">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GBA圖形處理邏輯模擬 - Object tile memory
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-08-04 00:06:57 / Modified: 00:07:30" itemprop="dateCreated datePublished" datetime="2022-08-04T00:06:57+08:00">2022-08-04</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <figure>
 <img src="https://i.imgur.com/SNkM4rS.jpg" alt="cover">
 <figcaption aria-hidden="true">cover</figcaption>
 </figure>
@@ -171,4 +344,196 @@ data卻還是一樣是線性的，也就是說每個tile中的第一行與第二
 per tile line(0x4 or 0x8)</strong>，而非<strong>byte per tile line *
 0x20</strong></li>
 </ul>
-</article><section class="jump-container is-flex is-justify-content-space-between my-6"><!-- em is empty placeholder--><a class="button is-default" href="/Affine-background/" title="GBA圖形處理邏輯模擬 - Affine background"><i class="iconfont icon-prev mr-2 has-text-grey"></i><span class="has-text-weight-semibold">Previous: GBA圖形處理邏輯模擬 - Affine background</span></a><a class="button is-default" href="/oam/" title="GBA圖形處理邏輯模擬 - Object Attribute Memory(OAM)"><span class="has-text-weight-semibold">Next: GBA圖形處理邏輯模擬 - Object Attribute Memory(OAM)</span><i class="iconfont icon-next ml-2 has-text-grey"></i></a></section><article class="mt-6 comment-container"><script async repo="Haojen/Claudia-theme-blog" src="https://utteranc.es/client.js" issue-term="pathname" theme="preferred-color-scheme"></script></article></div></div></main></main><footer class="is-flex is-flex-direction-column is-align-items-center is-flex-shrink-0 is-family-serif"><section class="sns-container"><!-- Github--><a title="github" target="_blank" rel="noopener nofollow" href="//github.com/GGORZ10227216"><i class="iconfont icon-github"></i></a><!-- Ins--><!-- RSS--><!-- 知乎--><!-- 领英--><!-- 脸书--></section><p><span>Copyright ©</span><span> 0rzgg 2022</span></p><div class="is-flex is-justify-content-center is-flex-wrap-wrap"><p>Powered by Hexo &verbar;&nbsp;</p><p class="is-flex is-justify-content-center"><a title="Hexo theme author" target="_blank" rel="noopener" href="//github.com/haojen">Theme by Haojen&nbsp;</a></p><div style="margin-top: 2px"><a class="github-button" title="github-button" target="_blank" rel="noopener" href="https://github.com/haojen/hexo-theme-Claudia" data-color-scheme="no-preference: light; light: light; dark: dark;" data-show-count="true"></a></div></div><div><span></span></div></footer><script async defer src="https://buttons.github.io/buttons.js"></script><script src="/js/post.js"></script></body></html>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/GBA/" rel="tag"># GBA</a>
+              <a href="/tags/emulator/" rel="tag"># emulator</a>
+              <a href="/tags/graphics/" rel="tag"># graphics</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/oam/" rel="prev" title="GBA圖形處理邏輯模擬 - Object Attribute Memory(OAM)">
+      <i class="fa fa-chevron-left"></i> GBA圖形處理邏輯模擬 - Object Attribute Memory(OAM)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Affine-background/" rel="next" title="GBA圖形處理邏輯模擬 - Affine background">
+      GBA圖形處理邏輯模擬 - Affine background <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#dimensional"><span class="nav-number">1.</span> <span class="nav-text">1 Dimensional</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dimensional-1"><span class="nav-number">2.</span> <span class="nav-text">2 Dimensional</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">0rzgg</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">0rzgg</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
