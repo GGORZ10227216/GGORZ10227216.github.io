@@ -28,7 +28,7 @@
 <meta property="og:description" content="最近剛好在研究boost::asio，在研究官方範例的時候發現與fiber連動的code，感覺有點玄妙，來寫篇筆記">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-08-05T17:25:20.000Z">
-<meta property="article:modified_time" content="2022-08-06T14:01:09.943Z">
+<meta property="article:modified_time" content="2022-08-08T04:13:55.309Z">
 <meta property="article:author" content="0rzgg">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="networking">
@@ -300,10 +300,16 @@ mjx-container[display="true"] + br {
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2022-08-06 01:25:20 / Modified: 22:01:09" itemprop="dateCreated datePublished" datetime="2022-08-06T01:25:20+08:00">2022-08-06</time>
+              <time title="Created: 2022-08-06 01:25:20" itemprop="dateCreated datePublished" datetime="2022-08-06T01:25:20+08:00">2022-08-06</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-08-08 12:13:55" itemprop="dateModified" datetime="2022-08-08T12:13:55+08:00">2022-08-08</time>
+              </span>
 
           
 
@@ -342,7 +348,7 @@ robin，這沒有太大的問題</li>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">server</span><span class="params">( std::shared_ptr&lt; boost::asio::io_context &gt; <span class="type">const</span>&amp; io_ctx, tcp::acceptor &amp; a)</span> </span>{</span><br><span class="line">    <span class="built_in">print</span>( <span class="built_in">tag</span>(), <span class="string">": echo-server started"</span>);</span><br><span class="line">    <span class="keyword">try</span> {</span><br><span class="line">        <span class="keyword">for</span> (;;) {</span><br><span class="line">            <span class="function">socket_ptr <span class="title">socket</span><span class="params">( <span class="keyword">new</span> tcp::socket( * io_ctx) )</span></span>;</span><br><span class="line">            boost::system::error_code ec;</span><br><span class="line">            a.<span class="built_in">async_accept</span>(</span><br><span class="line">                    * socket,</span><br><span class="line">                    boost::fibers::asio::yield[ec]);</span><br><span class="line">            <span class="keyword">if</span> ( ec) {</span><br><span class="line">                <span class="keyword">throw</span> boost::system::<span class="built_in">system_error</span>( ec); <span class="comment">//some other error</span></span><br><span class="line">            } <span class="keyword">else</span> {</span><br><span class="line">                boost::fibers::<span class="built_in">fiber</span>( session, socket).<span class="built_in">detach</span>();</span><br><span class="line">            }</span><br><span class="line">        }</span><br><span class="line">    } <span class="built_in">catch</span> ( std::exception <span class="type">const</span>&amp; ex) {</span><br><span class="line">        <span class="built_in">print</span>( <span class="built_in">tag</span>(), <span class="string">": caught exception : "</span>, ex.<span class="built_in">what</span>());</span><br><span class="line">    }</span><br><span class="line">    io_ctx-&gt;<span class="built_in">stop</span>();</span><br><span class="line">    <span class="built_in">print</span>( <span class="built_in">tag</span>(), <span class="string">": echo-server stopped"</span>);</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
 <ul>
 <li>我們的server
-fiber實體長這樣，但實際上只有做一個accept()動作，實際上處理連線的部份我們晚點會講</li>
+fiber實體長這樣，但實際上只有做一個accept()動作而已</li>
 <li>所以server()幹了啥?
 <ul>
 <li>使用我們在main裏頭準備好的acceptor
