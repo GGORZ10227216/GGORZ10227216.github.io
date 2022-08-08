@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 6.2.0">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
   <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
 <link rel="stylesheet" href="/css/main.css">
@@ -17,7 +17,7 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"ggorz10227216.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"ggorz10227216.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="cover  GBA所使用的CPU ARM7TDMI要觸發中斷基本上有硬體中斷與軟體中斷兩種手段，兩種中斷的運作機制部份相似但在關鍵部份還是有所差異，若要正確模擬GBA的中斷就必須要將這兩種中斷的運作機制都搞清楚才行 換句話說，關於GBA的中斷沒有打模糊仗的空間，該讀的Spec就是要讀，該想的問題就是要想 本文會先就軟體中斷的部份作解說，硬體中斷會在另外一篇文章作描述">
@@ -221,6 +221,7 @@ mjx-container[display="true"] + br {
       <h1 class="site-title">黃爸爸狗園</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
+      <p class="site-subtitle" itemprop="description">本園只有sanitizer，沒有圍欄</p>
   </div>
 
   <div class="site-nav-right">
@@ -239,9 +240,19 @@ mjx-container[display="true"] + br {
     <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
 
   </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-site">
+
+    <a href="/site" rel="section"><i class="fa fa-fw fa-sitemap"></i>site</a>
 
   </li>
   </ul>
@@ -275,7 +286,7 @@ mjx-container[display="true"] + br {
     <link itemprop="mainEntityOfPage" href="https://ggorz10227216.github.io/hardirq/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="image" content="/images/avatar.png">
       <meta itemprop="name" content="0rzgg">
       <meta itemprop="description" content="">
     </span>
@@ -369,6 +380,23 @@ audio.....)問題會變得更加複雜，因此強烈建議要做好測試，方
     
     
     
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>0rzgg
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://ggorz10227216.github.io/hardirq/" title="GBA的軟體中斷與其相對應的處理">https://ggorz10227216.github.io/hardirq/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
 
       <footer class="post-footer">
           <div class="post-tags">
@@ -452,6 +480,8 @@ audio.....)問題會變得更加複雜，因此強烈建議要做好測試，方
 
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="0rzgg"
+      src="/images/avatar.png">
   <p class="site-author-name" itemprop="name">0rzgg</p>
   <div class="site-description" itemprop="description"></div>
 </div>
@@ -470,6 +500,9 @@ audio.....)問題會變得更加複雜，因此強烈建議要做好測試，方
       </div>
   </nav>
 </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
 
 
 
@@ -498,7 +531,7 @@ audio.....)問題會變得更加複雜，因此強烈建議要做好測試，方
   </span>
   <span class="author" itemprop="copyrightHolder">0rzgg</span>
 </div>
-  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>
 
         
@@ -524,7 +557,7 @@ audio.....)問題會變得更加複雜，因此強烈建議要做好測試，方
 <script src="/js/motion.js"></script>
 
 
-<script src="/js/schemes/muse.js"></script>
+<script src="/js/schemes/pisces.js"></script>
 
 
 <script src="/js/next-boot.js"></script>
