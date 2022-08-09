@@ -20,31 +20,21 @@
     var CONFIG = {"hostname":"ggorz10227216.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="cover  GBA的VRAM中有數塊特殊的區域用來描述在一個BG中如何排列tile，我們將其稱呼為BG map memory，本文將會詳細說明其格式與特點">
+  <meta name="description" content="這標題，真的很clickbait..... 這份筆記會針對constexpr與編譯期初始化的關聯做說明">
 <meta property="og:type" content="article">
-<meta property="og:title" content="GBA圖形處理邏輯模擬 - Background Map">
-<meta property="og:url" content="https://ggorz10227216.github.io/Background-map/index.html">
+<meta property="og:title" content="Stop Using &#96;constexpr&#96; (And Use This Instead!)">
+<meta property="og:url" content="https://ggorz10227216.github.io/constexpr-1/index.html">
 <meta property="og:site_name" content="黃爸爸狗園">
-<meta property="og:description" content="cover  GBA的VRAM中有數塊特殊的區域用來描述在一個BG中如何排列tile，我們將其稱呼為BG map memory，本文將會詳細說明其格式與特點">
+<meta property="og:description" content="這標題，真的很clickbait..... 這份筆記會針對constexpr與編譯期初始化的關聯做說明">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://i.imgur.com/SNkM4rS.jpg">
-<meta property="og:image" content="https://i.imgur.com/QSCzFdY.png">
-<meta property="og:image" content="https://i.imgur.com/wVb3Wf9.png">
-<meta property="og:image" content="https://i.imgur.com/AZwMSiI.png">
-<meta property="og:image" content="https://i.imgur.com/MkrrczV.png">
-<meta property="og:image" content="https://i.imgur.com/92fnJAs.png">
-<meta property="og:image" content="https://i.imgur.com/AjAo0YT.png">
-<meta property="og:image" content="https://i.imgur.com/OnPul00.png">
-<meta property="article:published_time" content="2022-08-03T16:10:00.000Z">
-<meta property="article:modified_time" content="2022-08-05T18:03:37.190Z">
+<meta property="article:published_time" content="2022-08-08T18:14:31.000Z">
+<meta property="article:modified_time" content="2022-08-09T09:35:09.908Z">
 <meta property="article:author" content="0rzgg">
-<meta property="article:tag" content="GBA">
-<meta property="article:tag" content="emulator">
-<meta property="article:tag" content="graphics">
+<meta property="article:tag" content="cpp_weekly_note">
+<meta property="article:tag" content="c++">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://i.imgur.com/SNkM4rS.jpg">
 
-<link rel="canonical" href="https://ggorz10227216.github.io/Background-map/">
+<link rel="canonical" href="https://ggorz10227216.github.io/constexpr-1/">
 
 
 <script id="page-configurations">
@@ -57,7 +47,7 @@
   };
 </script>
 
-  <title>GBA圖形處理邏輯模擬 - Background Map | 黃爸爸狗園</title>
+  <title>Stop Using `constexpr` (And Use This Instead!) | 黃爸爸狗園</title>
   
 
 
@@ -291,7 +281,7 @@ mjx-container[display="true"] + br {
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://ggorz10227216.github.io/Background-map/">
+    <link itemprop="mainEntityOfPage" href="https://ggorz10227216.github.io/constexpr-1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.png">
@@ -304,7 +294,7 @@ mjx-container[display="true"] + br {
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          GBA圖形處理邏輯模擬 - Background Map
+          Stop Using `constexpr` (And Use This Instead!)
         </h1>
 
         <div class="post-meta">
@@ -313,16 +303,10 @@ mjx-container[display="true"] + br {
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
+              
 
-              <time title="Created: 2022-08-04 00:10:00" itemprop="dateCreated datePublished" datetime="2022-08-04T00:10:00+08:00">2022-08-04</time>
+              <time title="Created: 2022-08-09 02:14:31 / Modified: 17:35:09" itemprop="dateCreated datePublished" datetime="2022-08-09T02:14:31+08:00">2022-08-09</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-08-06 02:03:37" itemprop="dateModified" datetime="2022-08-06T02:03:37+08:00">2022-08-06</time>
-              </span>
 
           
 
@@ -335,113 +319,63 @@ mjx-container[display="true"] + br {
     <div class="post-body" itemprop="articleBody">
 
       
-        <figure>
-<img src="https://i.imgur.com/SNkM4rS.jpg" alt="cover">
-<figcaption aria-hidden="true">cover</figcaption>
-</figure>
-<p>GBA的VRAM中有數塊特殊的區域用來描述在一個BG中如何排列tile，我們將其稱呼為BG
-map memory，本文將會詳細說明其格式與特點</p>
+        <p>這標題，真的很clickbait.....
+這份筆記會針對constexpr與編譯期初始化的關聯做說明</p>
 <span id="more"></span>
-<h2 id="map-data-format">Map data format</h2>
-<p>Map
-data內部紀錄了渲染一塊tile所需要知道的資訊，其格式根據BG為Text或者Affine會有所不同:</p>
+<div class="video-container"><iframe src="https://www.youtube.com/embed/4pKtPWcl1Go" frameborder="0" loading="lazy" allowfullscreen=""></iframe></div>
 <ul>
-<li><p>Text BG</p>
-<p><img src="https://i.imgur.com/QSCzFdY.png"></p>
-<p>欄位功能描述如下:</p>
+<li>constexpr，一般來說會用在標示某個變數需要於編譯期(compile
+time)就完成初始化</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">get_val</span><span class="params">(<span class="type">int</span> i)</span> </span>{</span><br><span class="line">    <span class="keyword">return</span> i*<span class="number">2</span>;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">    <span class="type">int</span> value = <span class="built_in">get_val</span>(<span class="number">2</span>) ;</span><br><span class="line">    <span class="keyword">return</span> value ;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
 <ul>
-<li>Character name
+<li>讓我們來看一看這個很簡單的範例出來的asm(x86_64 gcc -O0)</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">get_val(int):</span><br><span class="line">        push    rbp</span><br><span class="line">        mov     rbp, rsp</span><br><span class="line">        mov     DWORD PTR [rbp-4], edi</span><br><span class="line">        mov     eax, DWORD PTR [rbp-4]</span><br><span class="line">        add     eax, eax</span><br><span class="line">        pop     rbp</span><br><span class="line">        ret</span><br><span class="line">main:</span><br><span class="line">        push    rbp</span><br><span class="line">        mov     rbp, rsp</span><br><span class="line">        sub     rsp, 16</span><br><span class="line">        mov     edi, 2</span><br><span class="line">        call    get_val(int)</span><br><span class="line">        mov     DWORD PTR [rbp-4], eax</span><br><span class="line">        mov     eax, DWORD PTR [rbp-4]</span><br><span class="line">        leave</span><br><span class="line">        ret</span><br></pre></td></tr></table></figure>
 <ul>
-<li>雖然叫做name，但實際上是一個offset，當你從BG_CNT上計算出tile block
-base之後，假設BG_CNT上標明這是一個4bpp tile，則此map data所對應的tile
-data的address為:</li>
-<li>base block addr + chara. name * 0x20(4bpp的一個完整tile size)</li>
+<li><p>基本上就是很老實地把數值算出來，但是如果啟用最佳化又會是什麼情況(x86_64
+gcc -O3) <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">get_val(int):</span><br><span class="line">        lea     eax, [rdi+rdi]</span><br><span class="line">        ret</span><br><span class="line">main:</span><br><span class="line">        mov     eax, 4</span><br><span class="line">        ret</span><br></pre></td></tr></table></figure></p></li>
+<li><p>數值直接在編譯的時候算出來，寫進code了</p></li>
+<li><p>在影片裡頭提到constexpr到底會不會被編譯期初始化這一點永遠是不確定的，他會受到最佳化等級還有編譯器本身的影響</p>
+<ul>
+<li>我自己的經驗是，<strong>多半都會</strong>，唯一你必須要確保你有加上constexpr
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;array&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">constexpr</span> std::array&lt;<span class="type">int</span>, 100&gt; <span class="title">get_val</span><span class="params">()</span> </span>{</span><br><span class="line">std::array&lt;<span class="type">int</span>, 100&gt; result{};</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> n = <span class="number">0</span> ; n &lt; result.<span class="built_in">size</span>() ; ++n) {</span><br><span class="line">        result[ n ] = n ;</span><br><span class="line">    } <span class="comment">// for</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">    <span class="keyword">constexpr</span> <span class="keyword">auto</span> value = <span class="built_in">get_val</span>()[<span class="number">45</span>] ;</span><br><span class="line">    <span class="keyword">return</span> value ;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+此範例中的value，無論最佳化等級開多少，都會是編譯期求解</li>
 </ul></li>
-<li>假若是8bpp，則tile data會位於
+<li><p>我們現在要來進一步探討constexpr variable的storage
+duration，我把影片中的例子人肉OCR出來了</p>
 <ul>
-<li>base block addr + chara. name * 0x40(8bpp的一個完整tile size)</li>
-</ul></li>
-<li>有關tile data詳見<a href="/ZSQzSQKBTDWp4Rtmo9Vlpw">GBA圖形處理邏輯模擬 - Tile
-format</a></li>
-</ul></li>
-<li><p>Affine BG</p>
-<p><img src="https://i.imgur.com/wVb3Wf9.png"></p>
-<p>對，沒錯，真的就只有Character name，Affine
-BG的tile是強制256色的，考慮到Affine BG是利用仿射矩陣直接將screen
-pixel映射到map memory上，這樣的設計是最合理的</p>
+<li><a target="_blank" rel="noopener" href="https://godbolt.org/z/KahPEzdY7">here</a></li>
+<li>看似沒什麼問題的程式碼，居然觸發了ASAN，到底是怎麼回事?</li>
+<li>我們前面提到constexpr會讓變數在編譯期初始化但我們仔細看一下asm(in
+main()，為了簡潔我把ASAN關掉了) <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">lea     rdi, [rbp - 4016]</span><br><span class="line">movabs  rsi, offset .L__const.main.values</span><br><span class="line">mov     edx, 4000</span><br><span class="line">call    memcpy@PLT</span><br></pre></td></tr></table></figure></li>
+<li>驚人的事實是，array本身的確是constexpr，但是我們用了另外一個指標p去取他的值
 <ul>
-<li>因為tile一定是0x40，所以tile data的位置算法就是8bpp算法</li>
+<li>然後還在scope裏頭，這下可好，p會指向我們從executable搬到<strong>stack</strong>上的array</li>
+<li>你是不是發現了，即便宣告成constexpr，但她的storage
+duration依然不是static，這個constexpr的array居然是<strong>automatic</strong>(我指它的storage
+duration)</li>
+<li>這個程式在-O3的時候，最佳化直接編譯求值了，所以不會被ASAN抓到</li>
+<li>但是在-O0的時候我們有去做搬移的動作，然後就華麗的爆炸</li>
 </ul></li>
-<li><p>Horizontal flip flag</p>
-<ul>
-<li>此tile在渲染時是否要左右顛倒，我這裡是直接將讀出來的tile
-data做inverse</li>
-<li>考慮tile是4bpp的情況 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (xInverse) {</span><br><span class="line">    <span class="comment">// Swap the nibbles of each byte.</span></span><br><span class="line">    buf = (buf &amp; <span class="number">0x0F0F0F0F</span>) &lt;&lt; <span class="number">4</span></span><br><span class="line">        | (buf &amp; <span class="number">0xF0F0F0F0</span>) &gt;&gt; <span class="number">4</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Swap the bytes of each byte pair.</span></span><br><span class="line">    buf = (buf &amp; <span class="number">0x00FF00FF</span>) &lt;&lt; <span class="number">8</span></span><br><span class="line">        | (buf &amp; <span class="number">0xFF00FF00</span>) &gt;&gt; <span class="number">8</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Swap the byte pairs.</span></span><br><span class="line">    buf = (buf &amp; <span class="number">0x0000FFFF</span>) &lt;&lt; <span class="number">16</span></span><br><span class="line">        | (buf &amp; <span class="number">0xFFFF0000</span>) &gt;&gt; <span class="number">16</span>;</span><br><span class="line">} <span class="comment">// if</span></span><br></pre></td></tr></table></figure></li>
-<li>8bpp會比較簡單 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (xInverse) {</span><br><span class="line">    <span class="comment">// Swap the bytes of each byte pair.</span></span><br><span class="line">    buf = (buf &amp; <span class="number">0x00FF00FF</span>) &lt;&lt; <span class="number">8</span></span><br><span class="line">        | (buf &amp; <span class="number">0xFF00FF00</span>) &gt;&gt; <span class="number">8</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Swap the byte pairs.</span></span><br><span class="line">    buf = (buf &amp; <span class="number">0x0000FFFF</span>) &lt;&lt; <span class="number">16</span></span><br><span class="line">        | (buf &amp; <span class="number">0xFFFF0000</span>) &gt;&gt; <span class="number">16</span>;</span><br><span class="line">} <span class="comment">// if</span></span><br></pre></td></tr></table></figure></li>
 </ul></li>
-<li><p>Vertical flip flag</p>
+<li><p>所以結論是，我們原本所想的constexpr跟實際上的constexpr是有差異的</p>
 <ul>
-<li>此tile在渲染時是否要上下顛倒</li>
+<li>最接近我們所想的應該是<strong>static
+constexpr</strong>，我們把先前的範例改一改
+<ul>
+<li>在constexpr前加上static，你就會看到剛剛提到的那個搬移動作不見了</li>
+<li>因為現在values的storage duration是<strong>static</strong></li>
 </ul></li>
-<li><p>Color palette</p>
-<ul>
-<li>如果BG_CNT有聲明是4bpp，則最後tile在繪製時所參考的palette
-number就會是這個欄位所描述的</li>
-<li>你可以把此欄位理解成row number，假設palette
-number是4，那tile就會變成全黑(因為tile 4所有16色都是黑色) <img src="https://i.imgur.com/AZwMSiI.png"></li>
+<li>我的老天鵝阿</li>
 </ul></li>
 </ul>
-<h2 id="virtual-screen">Virtual screen</h2>
-<p>Map memory基本上就是一塊由map
-data以二維排列而成的記憶體區塊，我們可以回顧一下這張表格:</p>
-<p><img src="https://i.imgur.com/MkrrczV.png"></p>
-<p>其中我們可以注意到<strong>Character format BG
-screen</strong>下有一個size的欄位，裏頭描述幾種螢幕大小組合，但可以確定的是都與我們所知道的GBA螢幕大小240*160不同</p>
-<p>這就是所謂的Virtual
-screen機制，我們可以把他想像成我們利用一個240*160的取景視窗，在一個很大的虛構區域內移動，接下來我們要來討論兩個重點:</p>
-<ol type="1">
-<li>虛構區域的大小
+<h2 id="延伸閱讀">延伸閱讀</h2>
 <ul>
-<li>我們能夠移動的虛構區域大小是依靠BG_CNT中的Screen
-size控制的，其大小如下表所述: <img src="https://i.imgur.com/92fnJAs.png"></li>
-<li>圖表中明確提到了Text/Affine的狀態下，map
-data的尺寸與記憶體占用皆不同</li>
-</ul></li>
-<li>如何移動可視範圍
-<ul>
-<li><p>我們在確認Virtual
-screen的大小後，下一步自然就是要把取景範圍移動到我們想要的地方，這一個步驟在Text
-BG與Affine BG下的操作方式並不相同:</p>
-<ul>
-<li>Text BG:
-我們需要調整HOFS以及VOFS兩個register來移動取景範圍的左上角座標，如果這兩個暫存器的數值超過的virtual
-screen的尺寸的話，真正對應到的數值將會被 %screen size <img src="https://i.imgur.com/AjAo0YT.png"></li>
-</ul>
-<p>不同的Screen size，移動時看起來會像是這樣</p>
-<p><img src="https://i.imgur.com/OnPul00.png"></p>
-<ul>
-<li>Affine
-BG:Affine模式下是直接依靠仿射矩陣來決定每一個螢幕上的pixel對應到的tile
-data，因此並不需要依靠HOFS以及VOFS，詳細請見<a href="/CwJ9l02WSeqwf7bM_Io5Ew">GBA圖形處理邏輯模擬 - Affine
-background</a></li>
-</ul></li>
-</ul></li>
-</ol>
-<h2 id="address-formula">Address formula</h2>
-<p>最後附上一個Text BG計算某一個screen
-pixel，其所在的tile對應到那一個map data的計算公式:</p>
-<ul>
-<li>Physical screen X, Y = Sx, Sy</li>
-<li>Virtual Screen Width, Height = Vw, Vh</li>
-<li>Viewing area X = (Sx + HOFS) % Vw = S_vx, Viewing area Y = (Sy +
-VOFS) % Vh = S_vy</li>
-<li>Screen Base Block in BG_CNT = Sb</li>
-<li>map data address = 0x0600'0000 + (0x800 * Sb) + {((Vw / 8)*(S_vy /
-8)) + (S_vx / 8)} * 2
-<ul>
-<li>每一個tile為8*8，所以S_v(x|y) / 8是為了把pixel XY轉換為tile XY</li>
-<li>最後*2是因為Text BG每一個map data為2 bytes</li>
-</ul></li>
+<li><a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/language/storage_duration">Storage
+class specifiers</a></li>
+<li><a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/language/constexpr">constexpr
+specifier</a></li>
 </ul>
 
     </div>
@@ -458,7 +392,7 @@ VOFS) % Vh = S_vy</li>
   </li>
   <li class="post-copyright-link">
     <strong>Post link: </strong>
-    <a href="https://ggorz10227216.github.io/Background-map/" title="GBA圖形處理邏輯模擬 - Background Map">https://ggorz10227216.github.io/Background-map/</a>
+    <a href="https://ggorz10227216.github.io/constexpr-1/" title="Stop Using &#96;constexpr&#96; (And Use This Instead!)">https://ggorz10227216.github.io/constexpr-1/</a>
   </li>
   <li class="post-copyright-license">
     <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
@@ -469,9 +403,8 @@ VOFS) % Vh = S_vy</li>
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/GBA/" rel="tag"># GBA</a>
-              <a href="/tags/emulator/" rel="tag"># emulator</a>
-              <a href="/tags/graphics/" rel="tag"># graphics</a>
+              <a href="/tags/cpp-weekly-note/" rel="tag"># cpp_weekly_note</a>
+              <a href="/tags/c/" rel="tag"># c++</a>
           </div>
 
         
@@ -480,12 +413,12 @@ VOFS) % Vh = S_vy</li>
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/Affine-background/" rel="prev" title="GBA圖形處理邏輯模擬 - Affine background">
-      <i class="fa fa-chevron-left"></i> GBA圖形處理邏輯模擬 - Affine background
+    <a href="/orthogonality/" rel="prev" title="Orthogonality">
+      <i class="fa fa-chevron-left"></i> Orthogonality
     </a></div>
       <div class="post-nav-item">
-    <a href="/Tile-format/" rel="next" title="GBA圖形處理邏輯模擬 - Tile format">
-      GBA圖形處理邏輯模擬 - Tile format <i class="fa fa-chevron-right"></i>
+    <a href="/compile-time-multi-type/" rel="next" title="C++在編譯期作出多重型別物件">
+      C++在編譯期作出多重型別物件 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -545,7 +478,7 @@ VOFS) % Vh = S_vy</li>
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#map-data-format"><span class="nav-number">1.</span> <span class="nav-text">Map data format</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#virtual-screen"><span class="nav-number">2.</span> <span class="nav-text">Virtual screen</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#address-formula"><span class="nav-number">3.</span> <span class="nav-text">Address formula</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%B6%E4%BC%B8%E9%96%B1%E8%AE%80"><span class="nav-number">1.</span> <span class="nav-text">延伸閱讀</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

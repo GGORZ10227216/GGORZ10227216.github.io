@@ -17,7 +17,7 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"ggorz10227216.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+    var CONFIG = {"hostname":"ggorz10227216.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
   <meta name="description" content="cover  GBA所使用的CPU ARM7TDMI要觸發中斷基本上有硬體中斷與軟體中斷兩種手段，兩種中斷的運作機制部份相似但在關鍵部份還是有所差異，若要正確模擬GBA的中斷就必須要將這兩種中斷的運作機制都搞清楚才行 換句話說，關於GBA的中斷沒有打模糊仗的空間，該讀的Spec就是要讀，該想的問題就是要想 本文會先就軟體中斷的部份作解說，硬體中斷會在另外一篇文章作描述">
@@ -221,7 +221,7 @@ mjx-container[display="true"] + br {
       <h1 class="site-title">黃爸爸狗園</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
-      <p class="site-subtitle" itemprop="description">本園只有sanitizer，沒有圍欄</p>
+      <p class="site-subtitle" itemprop="description">本園只有sanitizer，沒有狗籠</p>
   </div>
 
   <div class="site-nav-right">
@@ -250,9 +250,14 @@ mjx-container[display="true"] + br {
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
 
   </li>
-        <li class="menu-item menu-item-site">
+        <li class="menu-item menu-item-links">
 
-    <a href="/site" rel="section"><i class="fa fa-fw fa-sitemap"></i>site</a>
+    <a href="/Links" rel="section"><i class="fa fa-fw fa-link"></i>links</a>
+
+  </li>
+        <li class="menu-item menu-item-resume">
+
+    <a href="/Resume" rel="section"><i class="fa fa-fw fa-envelope"></i>resume</a>
 
   </li>
   </ul>
@@ -490,12 +495,12 @@ audio.....)問題會變得更加複雜，因此強烈建議要做好測試，方
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-count">15</span>
         <span class="site-state-item-name">tags</span>
       </div>
   </nav>
@@ -531,7 +536,7 @@ audio.....)問題會變得更加複雜，因此強烈建議要做好測試，方
   </span>
   <span class="author" itemprop="copyrightHolder">0rzgg</span>
 </div>
-  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
 
         

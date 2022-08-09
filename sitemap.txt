@@ -1,3 +1,9 @@
+https://ggorz10227216.github.io/resume/index.html
+https://ggorz10227216.github.io/links/index.html
+https://ggorz10227216.github.io/categories/index.html
+https://ggorz10227216.github.io/constexpr-1/
+https://ggorz10227216.github.io/compile-time-multi-type/
+https://ggorz10227216.github.io/about/index.html
 https://ggorz10227216.github.io/autoecho/
 https://ggorz10227216.github.io/linear-transformations/
 https://ggorz10227216.github.io/orthogonality/
@@ -23,6 +29,8 @@ https://ggorz10227216.github.io/tags/Boost/
 https://ggorz10227216.github.io/tags/asynchronous-IO/
 https://ggorz10227216.github.io/tags/linear-Algebra/
 https://ggorz10227216.github.io/tags/math/
+https://ggorz10227216.github.io/tags/CTAD/
+https://ggorz10227216.github.io/tags/Variadic-template/
 https://ggorz10227216.github.io/tags/cpp-weekly-note/
 https://ggorz10227216.github.io/tags/c/
 https://ggorz10227216.github.io/tags/ARM/
