@@ -22,7 +22,7 @@
 
   <meta name="description" content="詳細的解說如何在編譯期做出一個具有多重型別的物件 神偷小吉從在S社工作的朋友K那裡幹來的程式碼">
 <meta property="og:type" content="article">
-<meta property="og:title" content="C++在編譯期作出多重型別物件">
+<meta property="og:title" content="C++在編譯期做出多重型別物件">
 <meta property="og:url" content="https://ggorz10227216.github.io/compile-time-multi-type/index.html">
 <meta property="og:site_name" content="黃爸爸狗園">
 <meta property="og:description" content="詳細的解說如何在編譯期做出一個具有多重型別的物件 神偷小吉從在S社工作的朋友K那裡幹來的程式碼">
@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://i.imgur.com/ryM29tn.png">
 <meta property="og:image" content="https://i.imgur.com/ls38480.png">
 <meta property="article:published_time" content="2022-08-09T09:18:03.000Z">
-<meta property="article:modified_time" content="2022-08-09T09:32:30.799Z">
+<meta property="article:modified_time" content="2022-08-09T15:53:36.247Z">
 <meta property="article:author" content="0rzgg">
 <meta property="article:tag" content="C++">
 <meta property="article:tag" content="CTAD">
@@ -51,7 +51,7 @@
   };
 </script>
 
-  <title>C++在編譯期作出多重型別物件 | 黃爸爸狗園</title>
+  <title>C++在編譯期做出多重型別物件 | 黃爸爸狗園</title>
   
 
 
@@ -298,7 +298,7 @@ mjx-container[display="true"] + br {
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          C++在編譯期作出多重型別物件
+          C++在編譯期做出多重型別物件
         </h1>
 
         <div class="post-meta">
@@ -309,7 +309,7 @@ mjx-container[display="true"] + br {
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2022-08-09 17:18:03 / Modified: 17:32:30" itemprop="dateCreated datePublished" datetime="2022-08-09T17:18:03+08:00">2022-08-09</time>
+              <time title="Created: 2022-08-09 17:18:03 / Modified: 23:53:36" itemprop="dateCreated datePublished" datetime="2022-08-09T17:18:03+08:00">2022-08-09</time>
             </span>
 
           
@@ -389,7 +389,7 @@ std::invoke_result_t<lambda>&gt; [23.]</lambda></lambda></lambda></li>
 <li>Multi(lambda, lambda, lambda) -&gt; Multi&lt;int, bool,
 std::string&gt;[23.]</li>
 <li>Multi&lt;int, bool, std::string&gt; -&gt; struct Multi : public
-To<int>, To<bool>, To<std::string>[20.]</std::string></bool></int></li>
+To&lt;int&gt;, To&lt;bool&gt;, To&lt;std::string&gt;[20.]</li>
 </ol></li>
 <li>接下來情況就很明朗了，我們得到了一個有多重繼承的物件，最後就是看static_cast&lt;&gt;轉成誰，就會變成誰，Magic!</li>
 </ul>
@@ -425,7 +425,7 @@ pack</a>
   </li>
   <li class="post-copyright-link">
     <strong>Post link: </strong>
-    <a href="https://ggorz10227216.github.io/compile-time-multi-type/" title="C++在編譯期作出多重型別物件">https://ggorz10227216.github.io/compile-time-multi-type/</a>
+    <a href="https://ggorz10227216.github.io/compile-time-multi-type/" title="C++在編譯期做出多重型別物件">https://ggorz10227216.github.io/compile-time-multi-type/</a>
   </li>
   <li class="post-copyright-license">
     <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.

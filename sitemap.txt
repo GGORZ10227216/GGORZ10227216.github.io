@@ -1,8 +1,8 @@
+https://ggorz10227216.github.io/compile-time-multi-type/
 https://ggorz10227216.github.io/resume/index.html
 https://ggorz10227216.github.io/links/index.html
 https://ggorz10227216.github.io/categories/index.html
 https://ggorz10227216.github.io/constexpr-1/
-https://ggorz10227216.github.io/compile-time-multi-type/
 https://ggorz10227216.github.io/about/index.html
 https://ggorz10227216.github.io/autoecho/
 https://ggorz10227216.github.io/linear-transformations/

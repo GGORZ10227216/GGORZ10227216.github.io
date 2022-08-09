@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://ggorz10227216.github.io/compile-time-multi-type/</loc>
+    
+    <lastmod>2022-08-09</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://ggorz10227216.github.io/resume/index.html</loc>
     
     <lastmod>2022-08-09</lastmod>
@@ -30,15 +39,6 @@
   
   <url>
     <loc>https://ggorz10227216.github.io/constexpr-1/</loc>
-    
-    <lastmod>2022-08-09</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>https://ggorz10227216.github.io/compile-time-multi-type/</loc>
     
     <lastmod>2022-08-09</lastmod>
     
