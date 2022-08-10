@@ -2,9 +2,9 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://ggorz10227216.github.io/compile-time-multi-type/</loc>
+    <loc>https://ggorz10227216.github.io/links/index.html</loc>
     
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -13,6 +13,15 @@
   <url>
     <loc>https://ggorz10227216.github.io/resume/index.html</loc>
     
+    <lastmod>2022-08-10</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://ggorz10227216.github.io/Affine-background/</loc>
+    
     <lastmod>2022-08-09</lastmod>
     
     <changefreq>monthly</changefreq>
@@ -20,7 +29,7 @@
   </url>
   
   <url>
-    <loc>https://ggorz10227216.github.io/links/index.html</loc>
+    <loc>https://ggorz10227216.github.io/compile-time-multi-type/</loc>
     
     <lastmod>2022-08-09</lastmod>
     
@@ -93,15 +102,6 @@
   
   <url>
     <loc>https://ggorz10227216.github.io/simple-std-function/</loc>
-    
-    <lastmod>2022-08-06</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>https://ggorz10227216.github.io/Affine-background/</loc>
     
     <lastmod>2022-08-06</lastmod>
     
@@ -193,7 +193,7 @@
 
   <url>
     <loc>https://ggorz10227216.github.io/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -201,105 +201,105 @@
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/GBA/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/emulator/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/graphics/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/C/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/networking/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/Boost/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/asynchronous-IO/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/linear-Algebra/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/math/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/CTAD/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/Variadic-template/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/cpp-weekly-note/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/c/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/ARM/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ggorz10227216.github.io/tags/system-programming/</loc>
-    <lastmod>2022-08-09</lastmod>
+    <lastmod>2022-08-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
