@@ -1,3 +1,4 @@
+https://ggorz10227216.github.io/compile-time-string-gen/
 https://ggorz10227216.github.io/links/index.html
 https://ggorz10227216.github.io/resume/index.html
 https://ggorz10227216.github.io/Affine-background/
@@ -33,5 +34,6 @@ https://ggorz10227216.github.io/tags/CTAD/
 https://ggorz10227216.github.io/tags/Variadic-template/
 https://ggorz10227216.github.io/tags/cpp-weekly-note/
 https://ggorz10227216.github.io/tags/c/
+https://ggorz10227216.github.io/tags/cpp-weekly-note/
 https://ggorz10227216.github.io/tags/ARM/
 https://ggorz10227216.github.io/tags/system-programming/
