@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ggorz10227216.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本系列文為C++ Weekly PMR Series的筆記文之三 我們在上篇文章中說明了自訂義memory_resource的方法，以及建構pmr容器的一些注意事項 接下來我們將繼續深入探討PMR的細節">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++ Polymorphic allocator，花式記憶體管理 (三)">
+<meta property="og:url" content="https://ggorz10227216.github.io/cpp-pmr-3/index.html">
+<meta property="og:site_name" content="黃爸爸狗園">
+<meta property="og:description" content="本系列文為C++ Weekly PMR Series的筆記文之三 我們在上篇文章中說明了自訂義memory_resource的方法，以及建構pmr容器的一些注意事項 接下來我們將繼續深入探討PMR的細節">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://qph.cf2.quoracdn.net/main-qimg-dd244ac084ff5eac90f6ca82f0822b71-lq">
+<meta property="og:image" content="https://i.imgur.com/DgJHSld.png">
+<meta property="og:image" content="https://i.imgur.com/dyCG9C2.png">
+<meta property="og:image" content="https://i.imgur.com/mwZgD4Q.jpg">
+<meta property="article:published_time" content="2022-09-21T15:42:13.000Z">
+<meta property="article:modified_time" content="2022-09-21T15:43:42.134Z">
+<meta property="article:author" content="0rzgg">
+<meta property="article:tag" content="c++">
+<meta property="article:tag" content="cpp weekly note">
+<meta property="article:tag" content="polymorphic_allocator">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qph.cf2.quoracdn.net/main-qimg-dd244ac084ff5eac90f6ca82f0822b71-lq">
+
+<link rel="canonical" href="https://ggorz10227216.github.io/cpp-pmr-3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>C++ Polymorphic allocator，花式記憶體管理 (三) | 黃爸爸狗園</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style><link rel="alternate" href="/atom.xml" title="黃爸爸狗園" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">黃爸爸狗園</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">本園只有sanitizer，沒有狗籠</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links" rel="section"><i class="fa fa-fw fa-link"></i>links</a>
+
+  </li>
+        <li class="menu-item menu-item-resume">
+
+    <a href="/resume" rel="section"><i class="fa fa-fw fa-envelope"></i>resume</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://ggorz10227216.github.io/cpp-pmr-3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="0rzgg">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="黃爸爸狗園">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          C++ Polymorphic allocator，花式記憶體管理 (三)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-09-21 23:42:13 / Modified: 23:43:42" itemprop="dateCreated datePublished" datetime="2022-09-21T23:42:13+08:00">2022-09-21</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><img src="https://qph.cf2.quoracdn.net/main-qimg-dd244ac084ff5eac90f6ca82f0822b71-lq"></p>
+<p>本系列文為<a target="_blank" rel="noopener" href="https://www.youtube.com/playlist?list=PLs3KjaCtOwSYX3X0L36NgwK0pxZZavDSF">C++
+Weekly PMR Series</a>的筆記文之三</p>
+<p>我們在上篇文章中說明了自訂義memory_resource的方法，以及建構pmr容器的一些注意事項
+接下來我們將繼續深入探討PMR的細節</p>
+<span id="more"></span>
+<h2 id="還漏掉了一片拼圖">還漏掉了一片拼圖</h2>
+<ul>
+<li>我們先前已經看過了pmr::vector跟pmr::string，<strong>還有pmr::vector&lt;pmr::string&gt;</strong>
+<ul>
+<li>我們使用了vector.emplace_back()來插入pmr::string，使得vector內部的所有string都依靠vector的allocator來建構</li>
+<li>但問題來了，世界不是只有美國，C++也不是只有string</li>
+</ul></li>
+<li>假設今天我們有一個自己寫的class
+S，我們要如何才可以讓S跟pmr::string一樣可以被放進pmr容器中，並且與容器使用相同的allocator呢?
+<ul>
+<li>要解決這個問題，我們得先分解問題為兩個部分
+<ul>
+<li>如何建構一個支援Polymorphic allocator的class S</li>
+<li>如何讓容器裡的instance S與容器共用allocator</li>
+</ul></li>
+</ul></li>
+<li>先來看一眼pmr這個namespace是何方神聖，我們寫了他很多次，但都沒仔細看過他
+<ul>
+<li>vector的定義 <img src="https://i.imgur.com/DgJHSld.png"></li>
+<li>string的定義 <img src="https://i.imgur.com/dyCG9C2.png"></li>
+</ul></li>
+<li>我們可以看出無論是vector還是string，所謂的namespace
+pmr就只是把原本的Allocator&lt;T&gt;換成了polymorphic_allocator&lt;T&gt;而已
+<ul>
+<li>咦!?原本就有Allocator了? 那幹嘛我們還要再弄一個進去?</li>
+</ul></li>
+</ul>
+<h2 id="allocatort-v.s.-polymorphic_allocatort">Allocator&lt;T&gt; V.S.
+polymorphic_allocator&lt;T&gt;</h2>
+<ul>
+<li>會發生這種奇怪問題的原因是因為原本的allocator在設計上並不是考慮的非常周全，例如以下的情況
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">std::vector&lt;<span class="type">int</span>&gt; std_vec {<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>} ; <span class="comment">// same as std::vector&lt;int, std::allocator&lt;int&gt;&gt;</span></span><br><span class="line">std::vector&lt;<span class="type">int</span>, custom_allocator&gt; custom_vec;</span><br><span class="line"></span><br><span class="line">custom_vec = std_vec ; <span class="comment">// Error!</span></span><br></pre></td></tr></table></figure></li>
+<li>可以看到的是，在使用allocator的狀況下，不同allocator的vector他們具有<strong>不同</strong>的型別，一些vector與vector之間的操作就變得不好實作了
+<ul>
+<li>如同上面示範的assign，因為std_vec與custom_vec的型別不同了，因此編譯會失敗，你得自己徒手實作operator
+=才行</li>
+<li>更麻煩的是，即便你寫了一個可以處理custom_vec的operator
+=，萬一我又寫了一個新的allocator(我們叫他bump
+allocator好了)，同樣的事情又要再來一遍，豈不是很惱人?</li>
+<li>聰明的小吉肯定會想到要用template來解，的確，template可以解決掉這個問題</li>
+<li>但代價是<strong>代碼膨脹</strong>以及<strong>編譯時間增加</strong>，就看你覺得值不值得</li>
+</ul></li>
+<li>所以C++17引入了polymorphic_allocator，顧名思義，原本依靠不同的allocator&lt;T&gt;來切換記憶體管理策略的方式，現在一率都變成用繼承的方式來處理
+<ul>
+<li>你可以看到無論是先前提過的<code>monotonic_buffer_resource</code>，還是等等我們會介紹的<code>unsynchronized_pool_resource</code>，他們全部都繼承自<code>std::pmr::memory_resource</code></li>
+<li>反過來說，任何pmr容器內部都會有一個polymorphic_allocator&lt;T&gt;，透過其內部不同的memory_resource來實現不同的記憶體管理行為
+<ul>
+<li>但我們從外面看，容器型別都是一樣的(Allocator都是polymorphic_allocator&lt;T&gt;)</li>
+</ul></li>
+</ul></li>
+<li>如此一來，Allcator&lt;T&gt;的問題就能夠被解決掉，但由於polymorphic_allocator背後是仰賴v_table機制運作，因此virtual
+function call的overhead就必須要被考慮
+<ul>
+<li>假設你很在乎的話啦...</li>
+</ul></li>
+</ul>
+<h2 id="allocator-aware-types">Allocator-Aware Types</h2>
+<ul>
+<li>在釐清完allocator的問題後，我們就要來實際來解決第一個問題:
+<strong>建構一個支援Polymorphic allocator的class S</strong>
+<ul>
+<li>由於我們只打算讓class支援polymorphic
+allocator，所以可以直接一點，直接塞進constructor裏頭，就不用那麼麻煩搞一個namespace
+pmr了</li>
+<li>我們沿用上一篇文章的範例，稍微修改一下(<a target="_blank" rel="noopener" href="https://godbolt.org/z/733av1j3o">code在這</a>) <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">S</span> {</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">S</span>(<span class="type">const</span> <span class="type">char</span>* str) : </span><br><span class="line">        _str(str)</span><br><span class="line">    {</span><br><span class="line"></span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="built_in">S</span>(<span class="type">const</span> <span class="type">char</span>* str, <span class="type">const</span> std::pmr::polymorphic_allocator&lt;&gt;&amp; allocator) :</span><br><span class="line">        _str(str, allocator), _alloc(allocator)</span><br><span class="line">    {</span><br><span class="line"></span><br><span class="line">    }</span><br><span class="line"> </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    std::pmr::string _str = <span class="string">"long long long long long long"</span>;</span><br><span class="line">    std::pmr::polymorphic_allocator&lt;&gt; _alloc;</span><br><span class="line">};</span><br></pre></td></tr></table></figure></li>
+<li>我們試著弄了一個class S，然後給他兩個constructor
+<ul>
+<li>一個普通的</li>
+<li>跟一個可以塞pmr allocator的</li>
+</ul></li>
+</ul></li>
+<li>看起來也沒有很難嘛，但是要接著解決下面的另一個問題:
+<strong>讓容器裡的instance S與容器共用allocator</strong>
+<ul>
+<li>我們試著做一次之後就發現事情沒有想像的那麼容易... <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Container, <span class="keyword">typename</span>... Values&gt;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">create_container</span><span class="params">(<span class="keyword">auto</span> *resource, Values&amp;&amp;... values)</span> </span>{</span><br><span class="line">    Container result{resource};</span><br><span class="line">    result.<span class="built_in">reserve</span>(<span class="keyword">sizeof</span>...(values));</span><br><span class="line">    (result.<span class="built_in">emplace_back</span>(std::forward&lt;Values&gt;(values)), ...);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">  print_alloc mem;</span><br><span class="line">  std::pmr::<span class="built_in">set_default_resource</span>(&amp;mem);</span><br><span class="line"></span><br><span class="line">  std::array&lt;std::<span class="type">uint8_t</span>, 1024&gt; buffer{};</span><br><span class="line">  std::<span class="function">pmr::monotonic_buffer_resource <span class="title">mem_resource</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    buffer.data(),</span></span></span><br><span class="line"><span class="params"><span class="function">    buffer.size()</span></span></span><br><span class="line"><span class="params"><span class="function">  )</span></span>;</span><br><span class="line"></span><br><span class="line">  std::cout &lt;&lt; <span class="string">"initializing vec&lt;S&gt;\n"</span>;</span><br><span class="line">  <span class="keyword">auto</span> container = create_container&lt;std::pmr::vector&lt;S&gt;&gt; (</span><br><span class="line">    &amp;mem_resource,</span><br><span class="line">    <span class="string">"short string"</span>,</span><br><span class="line">    <span class="string">"A really long string here"</span>,</span><br><span class="line">    <span class="string">"Another really long string here"</span></span><br><span class="line">  );</span><br><span class="line">  std::cout &lt;&lt; <span class="string">"exiting main\n"</span>;</span><br><span class="line">} <span class="comment">// main()</span></span><br></pre></td></tr></table></figure></li>
+<li>對應的輸出為 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">initializing vec&lt;S&gt;</span><br><span class="line">Allocating 26</span><br><span class="line">Allocating 32</span><br><span class="line">exiting main</span><br><span class="line">Deallocating 26: 'A really long string here'</span><br><span class="line">Deallocating 32: 'Another really long string here'</span><br></pre></td></tr></table></figure></li>
+<li>vector內的所有具有long string的S通通都被print_alloc抓到了</li>
+<li>我們在上篇文章中建立std::pmr::vector&lt;std::pmr::string&gt;還好端端的阿?</li>
+<li>很明顯地這次的問題並不是出在initilizer_list上頭</li>
+<li>那肯定跟我們的S有關</li>
+</ul></li>
+<li>問題在於，我們的std::pmr::vector在初始化每一個內部的S物件時，並沒有順利的把mem_resource轉送給S的constructor
+<ul>
+<li>換言之，S沒有認到mem_resource，我們可以透過對make_container做一些修改來佐證我們的推論
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> Container, <span class="keyword">typename</span>... Values&gt;</span><br><span class="line"><span class="function"><span class="keyword">auto</span> <span class="title">create_container</span><span class="params">(<span class="keyword">auto</span> *resource, Values&amp;&amp;... values)</span> </span>{</span><br><span class="line">    Container result{resource};</span><br><span class="line">    result.<span class="built_in">reserve</span>(<span class="keyword">sizeof</span>...(values));</span><br><span class="line">    (result.<span class="built_in">emplace_back</span>(std::forward&lt;Values&gt;(values), resource), ...);</span><br><span class="line">    <span class="comment">//                                                 ^ here</span></span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">}</span><br></pre></td></tr></table></figure></li>
+<li>在修改後，我們就可以看到原本被print_alloc捕捉到的alloc &amp;
+dealloc行為消失了，所以的確問題就是<strong>S沒有成功的認到vector內的mem_resource</strong></li>
+<li>那為何std::pmr::string就可以在原本的make_container下被認到?</li>
+</ul></li>
+<li>這...說來話長
+<ul>
+<li>簡單的來說，任何帶有<code>using allocator_type</code>的class，在allocation的過程中(<code>uses_allocator_args.h::uses_allocator_construction_args()</code>這一步)<code>uses_allocator_v</code>這個compile
+time check會是true</li>
+<li>後面還有一個<code>is_constructible_v</code>檢查在確保給定的args真的可以建構出class
+<ul>
+<li>一定要通過這些檢查，我們給的allocator才會真的被拿起來用</li>
+</ul></li>
+<li>否則就會被忽略，改用default_constructor</li>
+<li>所以我們的目標就是要讓S上也有<code>using allocator_type</code></li>
+</ul></li>
+<li>OK，事不宜遲，我們來看影片中改過的版本長怎樣 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">S</span> {</span><br><span class="line">  std::pmr::string str;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">using</span> allocator_type = std::pmr::polymorphic_allocator&lt;&gt;;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// default constructor, delegate to aa constructor</span></span><br><span class="line">  <span class="built_in">S</span>(<span class="type">const</span> <span class="type">char</span>* sstr) : <span class="built_in">S</span>(sstr, allocator_type{}) {}</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">explicit</span> <span class="title">S</span><span class="params">(<span class="type">const</span> <span class="type">char</span>* sstr, allocator_type alloc)</span></span></span><br><span class="line"><span class="function">    : str(sstr, alloc)</span></span><br><span class="line"><span class="function">  {</span></span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line">  <span class="built_in">S</span>(<span class="type">const</span> S &amp;other, allocator_type alloc = {})</span><br><span class="line">    : <span class="built_in">str</span>(other.str, alloc)</span><br><span class="line">  {</span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line">  <span class="built_in">S</span>(S &amp;&amp;) = <span class="keyword">default</span>;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">S</span>(S &amp;&amp;other, allocator_type alloc)</span><br><span class="line">    : <span class="built_in">str</span>(std::<span class="built_in">move</span>(other.str), alloc)</span><br><span class="line">  {}</span><br><span class="line"></span><br><span class="line">  S &amp;<span class="keyword">operator</span>=(<span class="type">const</span> S &amp;rhs) = <span class="keyword">default</span>;</span><br><span class="line">  S &amp;<span class="keyword">operator</span>=(S &amp;&amp;rhs) = <span class="keyword">default</span>;</span><br><span class="line"></span><br><span class="line">  ~<span class="built_in">S</span>() = <span class="keyword">default</span>;</span><br><span class="line"></span><br><span class="line">  <span class="function">allocator_type <span class="title">get_allocator</span><span class="params">()</span> <span class="type">const</span> </span>{</span><br><span class="line">      <span class="keyword">return</span> str.<span class="built_in">get_allocator</span>();</span><br><span class="line">  }</span><br><span class="line">};</span><br></pre></td></tr></table></figure></li>
+<li>我們總共做了以下幾點修改
+<ul>
+<li>補上<code>using allocator_type</code></li>
+<li>根據<a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/language/rule_of_three">rule of
+five</a>，把該給的constructor跟destructor寫出來</li>
+</ul></li>
+<li>Cool, 完整程式碼<a target="_blank" rel="noopener" href="https://godbolt.org/z/TeKffWbvc">在此</a>，來看看輸出
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">initializing vec&lt;S&gt;</span><br><span class="line">A really long string here</span><br><span class="line">Another really long string here</span><br><span class="line">exiting main</span><br></pre></td></tr></table></figure></li>
+<li>現在所有的pmr::string都有乖乖地在local buffer上做allocation了
+<ul>
+<li>到這裡，我們就正式的完成了Allocator-Aware Types的建構</li>
+</ul></li>
+</ul>
+<h2 id="小結">小結</h2>
+<ul>
+<li>我們在本篇文章中探討了Allocator-Aware
+Types的建構方式，並且實際利用一個class S來實驗結果是否符合預期</li>
+<li>我們還探討了polymorphic_allocator與傳統allocator的不同，以及他們各自的優缺點</li>
+<li>我們也簡單的研究了一下using allocator_type背後的機轉為何</li>
+<li>下一篇文章我們就會正式開始探討不同的記憶體管理策略</li>
+</ul>
+<p>有的時候我都在想，搞那麼複雜幹嘛呢... <img src="https://i.imgur.com/mwZgD4Q.jpg"></p>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>0rzgg
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://ggorz10227216.github.io/cpp-pmr-3/" title="C++ Polymorphic allocator，花式記憶體管理 (三)">https://ggorz10227216.github.io/cpp-pmr-3/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/c/" rel="tag"># c++</a>
+              <a href="/tags/cpp-weekly-note/" rel="tag"># cpp weekly note</a>
+              <a href="/tags/polymorphic-allocator/" rel="tag"># polymorphic_allocator</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/cpp-pmr-2/" rel="prev" title="C++ Polymorphic allocator，花式記憶體管理 (二)">
+      <i class="fa fa-chevron-left"></i> C++ Polymorphic allocator，花式記憶體管理 (二)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/cpp-pmr-4/" rel="next" title="C++ Polymorphic allocator，花式記憶體管理 (四)">
+      C++ Polymorphic allocator，花式記憶體管理 (四) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%82%84%E6%BC%8F%E6%8E%89%E4%BA%86%E4%B8%80%E7%89%87%E6%8B%BC%E5%9C%96"><span class="nav-number">1.</span> <span class="nav-text">還漏掉了一片拼圖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#allocatort-v.s.-polymorphic_allocatort"><span class="nav-number">2.</span> <span class="nav-text">Allocator&lt;T&gt; V.S.
+polymorphic_allocator&lt;T&gt;</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#allocator-aware-types"><span class="nav-number">3.</span> <span class="nav-text">Allocator-Aware Types</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%B5%90"><span class="nav-number">4.</span> <span class="nav-text">小結</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="0rzgg"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">0rzgg</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">0rzgg</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,3 +1,7 @@
+https://ggorz10227216.github.io/cpp-pmr-1/
+https://ggorz10227216.github.io/cpp-pmr-2/
+https://ggorz10227216.github.io/cpp-pmr-4/
+https://ggorz10227216.github.io/cpp-pmr-3/
 https://ggorz10227216.github.io/compile-time-string-gen/
 https://ggorz10227216.github.io/links/index.html
 https://ggorz10227216.github.io/resume/index.html
@@ -37,3 +41,4 @@ https://ggorz10227216.github.io/tags/c/
 https://ggorz10227216.github.io/tags/cpp-weekly-note/
 https://ggorz10227216.github.io/tags/ARM/
 https://ggorz10227216.github.io/tags/system-programming/
+https://ggorz10227216.github.io/tags/polymorphic-allocator/

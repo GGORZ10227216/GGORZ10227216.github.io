@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ggorz10227216.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本系列文為C++ Weekly PMR Series的筆記文之四 我們在上篇文章中說明了定義Allocator aware type所需的注意事項，以及其背後的機制 在本文中，我們將繼續介紹包含monotonic_buffer_resource在內的數種memory_resource的特性">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++ Polymorphic allocator，花式記憶體管理 (四)">
+<meta property="og:url" content="https://ggorz10227216.github.io/cpp-pmr-4/index.html">
+<meta property="og:site_name" content="黃爸爸狗園">
+<meta property="og:description" content="本系列文為C++ Weekly PMR Series的筆記文之四 我們在上篇文章中說明了定義Allocator aware type所需的注意事項，以及其背後的機制 在本文中，我們將繼續介紹包含monotonic_buffer_resource在內的數種memory_resource的特性">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://qph.cf2.quoracdn.net/main-qimg-dd244ac084ff5eac90f6ca82f0822b71-lq">
+<meta property="og:image" content="https://i.imgur.com/F329rEg.png">
+<meta property="og:image" content="https://i.imgur.com/SKxF7v3.png">
+<meta property="article:published_time" content="2022-09-21T15:42:53.000Z">
+<meta property="article:modified_time" content="2022-09-21T15:43:44.217Z">
+<meta property="article:author" content="0rzgg">
+<meta property="article:tag" content="c++">
+<meta property="article:tag" content="cpp weekly note">
+<meta property="article:tag" content="polymorphic_allocator">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qph.cf2.quoracdn.net/main-qimg-dd244ac084ff5eac90f6ca82f0822b71-lq">
+
+<link rel="canonical" href="https://ggorz10227216.github.io/cpp-pmr-4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>C++ Polymorphic allocator，花式記憶體管理 (四) | 黃爸爸狗園</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style><link rel="alternate" href="/atom.xml" title="黃爸爸狗園" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">黃爸爸狗園</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">本園只有sanitizer，沒有狗籠</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links" rel="section"><i class="fa fa-fw fa-link"></i>links</a>
+
+  </li>
+        <li class="menu-item menu-item-resume">
+
+    <a href="/resume" rel="section"><i class="fa fa-fw fa-envelope"></i>resume</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://ggorz10227216.github.io/cpp-pmr-4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="0rzgg">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="黃爸爸狗園">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          C++ Polymorphic allocator，花式記憶體管理 (四)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-09-21 23:42:53 / Modified: 23:43:44" itemprop="dateCreated datePublished" datetime="2022-09-21T23:42:53+08:00">2022-09-21</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><img src="https://qph.cf2.quoracdn.net/main-qimg-dd244ac084ff5eac90f6ca82f0822b71-lq"></p>
+<p>本系列文為<a target="_blank" rel="noopener" href="https://www.youtube.com/playlist?list=PLs3KjaCtOwSYX3X0L36NgwK0pxZZavDSF">C++
+Weekly PMR Series</a>的筆記文之四</p>
+<p>我們在上篇文章中說明了定義Allocator aware
+type所需的注意事項，以及其背後的機制</p>
+<p>在本文中，我們將繼續介紹包含monotonic_buffer_resource在內的數種memory_resource的特性</p>
+<span id="more"></span>
+<h2 id="memory_resource與記憶體分配策略">memory_resource與記憶體分配策略</h2>
+<ul>
+<li>我們在前文中有提過<a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/memory/polymorphic_allocator">polymorphic
+allocator</a>到底是使用那一種記憶體分配策略，是依靠其內部的memory_resource在控制
+<ul>
+<li>By default會是<a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/memory/new_delete_resource">new_delete_resource</a>，背後對應的就是heap
+allocation</li>
+</ul></li>
+<li>我們也在前面的文章中幹過不少次把容器的allocator換成帶有<a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/memory/monotonic_buffer_resource">monotonic_buffer_resource</a>的allocator</li>
+<li>接著我們討論到當memory_resource耗盡了內部的記憶體資源時，該層級的memory_resource就會使用它的upstream_resource來獲取另一塊記憶體
+<ul>
+<li>關鍵是，雖然預設upstream_resource會是new_delete_resource，但我們可以將其替換成不同的resource，藉此組合不同memory_resource的特性來達成目的</li>
+<li>所以接下來我們就要來探討standard
+library提供的memory_resource有那些，而我們又該如何組合他們</li>
+</ul></li>
+</ul>
+<h2 id="各種memory_resoure">各種memory_resoure</h2>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/memory/null_memory_resource"><strong>null_memory_resource</strong></a>
+<ul>
+<li>顧名思義，就是一個什麼都沒有的memory_resource，我們在先前的文章中也看過他幾次
+<img src="https://i.imgur.com/F329rEg.png">
+<ul>
+<li>他的allocate()只要一被呼叫，就會立即拋出例外std::bad_alloc</li>
+<li>deallocate()則啥也不幹</li>
+</ul></li>
+<li>所以我們會把null_memory_resource使用在那些常理來說不應該被耗盡的memory_resource上(透過指定upstream_resource的方式)</li>
+<li>亦或者是將其指定為default_resource，避免有不被預期的allocation沒有被我們發現</li>
+</ul></li>
+<li><a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/memory/monotonic_buffer_resource"><strong>monotonic_buffer_resource</strong></a>
+<ul>
+<li>其運作邏輯是，給定一塊buffer(不一定要是local
+buffer，我們也可以把他的upstream設為new_delete，讓他去管理heap上的buffer)</li>
+<li>在這塊buffer上，我們永遠只會做allocation，絕對不做deallocation
+<ul>
+<li>藉此將memory allocation的overhead壓到最低</li>
+<li>但其代價就是面對頻繁新增刪除的場景就會導致非常糟糕的記憶體使用效率</li>
+</ul></li>
+<li>當它內部的buffer耗盡時，一樣也會透過upstream_resource去要一塊新的buffer
+<ul>
+<li>具體而言是透過monotonic_memory_resource::_M_new_buffer()這個function</li>
+<li>但新的buffer會有多大，依照<a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/memory/monotonic_buffer_resource/do_allocate">cppreference</a>所述，看實作=
+= <img src="https://i.imgur.com/SKxF7v3.png"></li>
+</ul></li>
+</ul></li>
+<li><a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/memory/unsynchronized_pool_resource"><strong>(un)synchronized_pool_resource</strong></a>
+<ul>
+<li>具體而言是synchronized_pool_resource跟unsynchronized_pool_resource
+<ul>
+<li>基本上差不多，但synchronized的版本是thread-safe，另一個不是</li>
+</ul></li>
+<li>名字裡頭有個pool，所以資料都泡水嗎
+<ul>
+<li>並沒有，這裡的pool應該要加上s，他的意思是這個memory_resource內有很多不同用chunk
+size區分的資源池，有點像是spa中心那樣有很多不同的池
+<ul>
+<li>等到那天黃爸有工作了，一定要去spa中心轉轉</li>
+</ul></li>
+<li>舉例來說，pool_resource會建立4 byte池，8
+byte池...等資源池，每一個池子都是一塊獨立的buffer，由於每一個池子內部的資源大小都是固定的，因此我們新增以及修改元素就比較不容易造成記憶體破碎化問題</li>
+<li>詳細有關pool的內部實作方式可以參考<a target="_blank" rel="noopener" href="https://github.com/gcc-mirror/gcc/blob/16e2427f50c208dfe07d07f18009969502c25dc8/libstdc%2B%2B-v3/src/c%2B%2B17/memory_resource.cc">libstdc++</a>
+<ul>
+<li>Pool的建構 -&gt; <code>__pool_resource::_M_alloc_pools()</code></li>
+<li>一個物件要進到pool，要先看他的size決定要去哪個pool -&gt;
+<code>unsynchronized_pool_resource::_M_find_pool(size_t block_siz)</code></li>
+<li>然後就是在do_allocate()裡頭呼叫剛剛找到的pool的allocate()</li>
+</ul></li>
+</ul></li>
+<li>如果其中某個pool資源耗盡，則pool_resource會使用他的upstream_resource重新配置一塊buffer出來作為該pool的資源，新配置的buffer大小會與舊buffer呈現等比級數關係</li>
+</ul></li>
+<li><a target="_blank" rel="noopener" href="https://en.cppreference.com/w/cpp/memory/new_delete_resource"><strong>new_delete_resource</strong></a>
+<ul>
+<li>我們的老朋友，沒啥好說的</li>
+</ul></li>
+</ul>
+<h2 id="case-study-unsynchronized_pool-monotonic">Case study:
+unsynchronized_pool + monotonic</h2>
+<ul>
+<li>我們現在來仔細看一看<a target="_blank" rel="noopener" href="https://godbolt.org/z/rMdTvn9co">範例</a>，影片中的範例是操作string，有點不易觀察，我換成了uint8_t</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">  spdlog::<span class="built_in">set_level</span>(spdlog::level::trace);</span><br><span class="line"></span><br><span class="line">  print_alloc default_alloc{<span class="string">"Rogue PMR Allocation!"</span>,</span><br><span class="line">                            std::pmr::<span class="built_in">null_memory_resource</span>()};</span><br><span class="line">  std::pmr::<span class="built_in">set_default_resource</span>(&amp;default_alloc);</span><br><span class="line"></span><br><span class="line">  print_alloc oom{<span class="string">"Out of Memory"</span>, std::pmr::<span class="built_in">null_memory_resource</span>()};</span><br><span class="line"></span><br><span class="line">  std::array&lt;std::<span class="type">uint8_t</span>, 32768&gt; buffer{};</span><br><span class="line">  spdlog::<span class="built_in">debug</span>(<span class="string">"Buffer area: 0x{:x} ~ 0x{:x}"</span>, (<span class="type">uint64_t</span>)buffer.<span class="built_in">data</span>(), (<span class="type">uint64_t</span>)(buffer.<span class="built_in">data</span>() + buffer.<span class="built_in">size</span>()));</span><br><span class="line">  std::<span class="function">pmr::monotonic_buffer_resource <span class="title">underlying_bytes</span><span class="params">(buffer.data(),</span></span></span><br><span class="line"><span class="params"><span class="function">                                                       buffer.size(), &amp;oom)</span></span>;</span><br><span class="line"></span><br><span class="line">  print_alloc monotonic{<span class="string">"Monotonic Array"</span>, &amp;underlying_bytes};</span><br><span class="line"></span><br><span class="line">  spdlog::<span class="built_in">debug</span>(<span class="string">"Starting pool_resource construction"</span>);</span><br><span class="line">  std::<span class="function">pmr::unsynchronized_pool_resource <span class="title">unsync_pool</span><span class="params">(&amp;monotonic)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function">print_alloc <span class="title">pool</span><span class="params">(<span class="string">"Pool"</span>, &amp;unsync_pool)</span></span>;</span><br><span class="line"></span><br><span class="line">  spdlog::<span class="built_in">debug</span>(<span class="string">"Starting vector construction"</span>);</span><br><span class="line">  std::<span class="function">pmr::vector&lt;<span class="type">uint8_t</span>&gt; <span class="title">vec</span><span class="params">(&amp;pool)</span></span>;</span><br><span class="line">  vec.<span class="built_in">push_back</span>(<span class="number">0x12</span>);</span><br><span class="line">  vec.<span class="built_in">push_back</span>(<span class="number">0x34</span>);</span><br><span class="line">  vec.<span class="built_in">push_back</span>(<span class="number">0x56</span>);</span><br><span class="line">  vec.<span class="built_in">push_back</span>(<span class="number">0x78</span>);</span><br><span class="line">  spdlog::<span class="built_in">debug</span>(<span class="string">"Edit element"</span>);</span><br><span class="line">  vec[<span class="number">1</span>] = <span class="number">0xaa</span>; </span><br><span class="line">  spdlog::<span class="built_in">debug</span>(<span class="string">"Exiting Main"</span>);</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<ul>
+<li>先來仔細看一看main()
+<ul>
+<li>default_alloc是一個帶有null_memory_resource的allocator，設做default來避免不預期的allocation發生</li>
+<li>oom是另外一個帶有null_memory_resource的allocator，作為underlying_bytes的upstream，表示帶有local
+buffer的monotonic resource不允許額外alloc(沒了就是沒了)</li>
+<li>再來就是underlying_bytes跟monotonic，再來就是underlying_bytes跟monotonic
+<ul>
+<li>underlying_bytes是一個monotonic_memory_resource，我們將它設為monotonic(他是print_alloc)的upstream</li>
+<li>monotonic就變得有點像是監視各種memory_resource的alloc &amp;
+dealloc的行為的中間人</li>
+<li>仔細看一下這個範例中的print_alloc就能發現，他的do_allocate()跟do_deallocate()基本上就是印log跟轉發給upstream</li>
+</ul></li>
+<li>最後則是unsync_pool，他是一個pool_resource
+<ul>
+<li>但是非常神奇的，他的upstream被設為了monotonic</li>
+<li>這就代表unsync_pool裡頭所有的pool都會在一個連續的buffer上</li>
+</ul></li>
+<li>我們使用了這個unsync_pool當作vector的resource，預期所有的資料都會在buffer上</li>
+</ul></li>
+<li>對應的輸出為 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[2022-08-25 16:58:23.809] [debug] Buffer area: 0x7ffea942a700 ~ 0x7ffea9432700</span><br><span class="line">[2022-08-25 16:58:23.809] [debug] Starting pool_resource construction</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Monotonic Array (alloc)] Size: 528 Alignment: 8 ...</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Monotonic Array (alloc)] ... Address: 0x7ffea942a700</span><br><span class="line">[2022-08-25 16:58:23.809] [debug] Starting vector construction</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Pool (alloc)] Size: 1 Alignment: 1 ...</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Monotonic Array (alloc)] Size: 1024 Alignment: 8 ...</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Monotonic Array (alloc)] ... Address: 0x7ffea942a910</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Monotonic Array (alloc)] Size: 192 Alignment: 8 ...</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Monotonic Array (alloc)] ... Address: 0x7ffea942ad10</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Pool (alloc)] ... Address: 0x7ffea942a910</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Pool (alloc)] Size: 2 Alignment: 1 ...</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Pool (alloc)] ... Address: 0x7ffea942a918</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Pool (dealloc)] Address: 0x7ffea942a910 Dealloc Size: 1 Alignment: 1 Data:  12</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Pool (alloc)] Size: 4 Alignment: 1 ...</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Pool (alloc)] ... Address: 0x7ffea942a910</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Pool (dealloc)] Address: 0x7ffea942a918 Dealloc Size: 2 Alignment: 1 Data:  12 34</span><br><span class="line">[2022-08-25 16:58:23.809] [debug] Edit element</span><br><span class="line">[2022-08-25 16:58:23.809] [debug] Exiting Main</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Pool (dealloc)] Address: 0x7ffea942a910 Dealloc Size: 4 Alignment: 1 Data:  12 aa 56 78</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Monotonic Array (dealloc)] Address: 0x7ffea942a910 Dealloc Size: 1024 Alignment: 8 Data:  12 aa 56 78 00 00 00 00 12 34 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 &lt;truncated...&gt;</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Monotonic Array (dealloc)] Address: 0x7ffea942ad10 Dealloc Size: 192 Alignment: 8 Data:  00 ad 42 a9 fe 7f 00 00 7e 00 00 00 00 04 00 00 10 a9 42 a9 fe 7f 00 00 00 00 00 00 00 00 00 00 00 &lt;truncated...&gt;</span><br><span class="line">[2022-08-25 16:58:23.809] [trace] [Monotonic Array (dealloc)] Address: 0x7ffea942a700 Dealloc Size: 528 Alignment: 8 Data:  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 08 00 00 00 fc 00 00 00 00 00 00 00 00 00 00 00 00 &lt;truncated...&gt;</span><br></pre></td></tr></table></figure></li>
+<li>我們可以發現幾件事情
+<ul>
+<li>monotonic array的alloc總共發生了3次
+<ul>
+<li>0x7ffea942a700這個是屬於pool_resource的，其餘兩次都是vector</li>
+<li>重點來了，怎麼換上了pool_resource之後，居然allocation被拆成兩次
+<ul>
+<li>原因是因為pool的特性，放uint8_t(1 byte, alignment
+1)的以及放vector內部pointer type(8 byte, alignment
+8)的被分去兩個pool</li>
+</ul></li>
+</ul></li>
+<li>另外，pool的allocation情形也值得一看
+<ul>
+<li>由於是vector的關係，所以不會每一次push_back()都觸發alloc(記得capacity嗎?)，每次Pool(alloc)的size都會跟capacity相同</li>
+<li>我們可以看到，在push_back的過程中pool有發生deallocation，但是unsync_pool的upstream是monotonic阿，照理說不應該發生deallocation</li>
+<li>有趣的點在於，pool裏頭的memory雖然來自於monotonic，但是實際上歸unsync_pool管理(我們從log上看到的是<strong>Pool</strong>
+(<strong>dealloc</strong>)對吧)，因此dealloc的邏輯是照著<code>unsynchronized_pool_resource::do_deallocate()</code>走</li>
+<li><code>unsynchronized_pool_resource::deallocate()</code>並不是真的歸還記憶體，他是將此塊記憶體重新標示為可用，等到下次有人alloc時就會重新被給出去</li>
+<li>而且受惠於upstream是monotonic的關係，pool的memory可以是local
+buffer，很酷吧!</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="小結">小結</h2>
+<ul>
+<li>我們在本文介紹了以下數種memory_resource的特性
+<ul>
+<li>null_memory_resource</li>
+<li>monotonic_buffer_resource</li>
+<li>(un)synchronized_pool_resource</li>
+<li>new_delete_resource</li>
+</ul></li>
+<li>並且實際操作了unsynchronized_pool_resource +
+monotonic_buffer_resource的組合</li>
+<li>下一篇，嗯..... 可以把最後一支影片的JSON範例實際走一遍</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>0rzgg
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://ggorz10227216.github.io/cpp-pmr-4/" title="C++ Polymorphic allocator，花式記憶體管理 (四)">https://ggorz10227216.github.io/cpp-pmr-4/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/c/" rel="tag"># c++</a>
+              <a href="/tags/cpp-weekly-note/" rel="tag"># cpp weekly note</a>
+              <a href="/tags/polymorphic-allocator/" rel="tag"># polymorphic_allocator</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/cpp-pmr-3/" rel="prev" title="C++ Polymorphic allocator，花式記憶體管理 (三)">
+      <i class="fa fa-chevron-left"></i> C++ Polymorphic allocator，花式記憶體管理 (三)
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#memory_resource%E8%88%87%E8%A8%98%E6%86%B6%E9%AB%94%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5"><span class="nav-number">1.</span> <span class="nav-text">memory_resource與記憶體分配策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%84%E7%A8%AEmemory_resoure"><span class="nav-number">2.</span> <span class="nav-text">各種memory_resoure</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#case-study-unsynchronized_pool-monotonic"><span class="nav-number">3.</span> <span class="nav-text">Case study:
+unsynchronized_pool + monotonic</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%B5%90"><span class="nav-number">4.</span> <span class="nav-text">小結</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="0rzgg"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">0rzgg</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">0rzgg</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

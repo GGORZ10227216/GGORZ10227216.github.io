@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ggorz10227216.github.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本系列文為C++ Weekly PMR Series的整理加上我的一些想法補充之類的 不得不說這真的是一個很有用但也很麻煩的主題，我會盡我所能把細節都描述清楚，盡量啦!">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++ Polymorphic allocator，花式記憶體管理 (一)">
+<meta property="og:url" content="https://ggorz10227216.github.io/cpp-pmr-1/index.html">
+<meta property="og:site_name" content="黃爸爸狗園">
+<meta property="og:description" content="本系列文為C++ Weekly PMR Series的整理加上我的一些想法補充之類的 不得不說這真的是一個很有用但也很麻煩的主題，我會盡我所能把細節都描述清楚，盡量啦!">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://qph.cf2.quoracdn.net/main-qimg-dd244ac084ff5eac90f6ca82f0822b71-lq">
+<meta property="article:published_time" content="2022-09-21T15:35:56.000Z">
+<meta property="article:modified_time" content="2022-09-21T15:43:52.250Z">
+<meta property="article:author" content="0rzgg">
+<meta property="article:tag" content="c++">
+<meta property="article:tag" content="cpp weekly note">
+<meta property="article:tag" content="polymorphic_allocator">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://qph.cf2.quoracdn.net/main-qimg-dd244ac084ff5eac90f6ca82f0822b71-lq">
+
+<link rel="canonical" href="https://ggorz10227216.github.io/cpp-pmr-1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>C++ Polymorphic allocator，花式記憶體管理 (一) | 黃爸爸狗園</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style><link rel="alternate" href="/atom.xml" title="黃爸爸狗園" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">黃爸爸狗園</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">本園只有sanitizer，沒有狗籠</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links" rel="section"><i class="fa fa-fw fa-link"></i>links</a>
+
+  </li>
+        <li class="menu-item menu-item-resume">
+
+    <a href="/resume" rel="section"><i class="fa fa-fw fa-envelope"></i>resume</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://ggorz10227216.github.io/cpp-pmr-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="0rzgg">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="黃爸爸狗園">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          C++ Polymorphic allocator，花式記憶體管理 (一)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-09-21 23:35:56 / Modified: 23:43:52" itemprop="dateCreated datePublished" datetime="2022-09-21T23:35:56+08:00">2022-09-21</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><img src="https://qph.cf2.quoracdn.net/main-qimg-dd244ac084ff5eac90f6ca82f0822b71-lq"></p>
+<p>本系列文為<a target="_blank" rel="noopener" href="https://www.youtube.com/playlist?list=PLs3KjaCtOwSYX3X0L36NgwK0pxZZavDSF">C++
+Weekly PMR Series</a>的整理加上我的一些想法補充之類的</p>
+<p>不得不說這真的是一個很有用但也很麻煩的主題，我會盡我所能把細節都描述清楚，盡量啦!</p>
+<span id="more"></span>
+<h2 id="倍的免費性能提升真的假的">3.5倍的免費性能提升，真的假的?</h2>
+<ul>
+<li>此系列開門見山的就拋出了<strong>3.5x</strong>這種極為誇張的效能提升數字，真的是嚇死人了，柬埔寨的薪水都沒有3.5倍那麼多
+<ul>
+<li>到底發生了什麼? 我們來看一下<a target="_blank" rel="noopener" href="https://quick-bench.com/q/gyRE6p5EdZ-2P0XOAUwO99JRN7g">code</a>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;memory_resource&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;list&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">StdList</span><span class="params">(benchmark::State&amp; state)</span> </span>{</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">auto</span> _ : state) {</span><br><span class="line">    std::list&lt;<span class="type">int</span>&gt; list{<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>};</span><br><span class="line">    benchmark::<span class="built_in">DoNotOptimize</span>(list);</span><br><span class="line">  }</span><br><span class="line">}</span><br><span class="line"><span class="comment">// Register the function as a benchmark</span></span><br><span class="line"><span class="built_in">BENCHMARK</span>(StdList);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">PmrList</span><span class="params">(benchmark::State&amp; state)</span> </span>{</span><br><span class="line">  std::array&lt;std::byte, 1024&gt; buffer;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">auto</span> _ : state) {</span><br><span class="line">    std::<span class="function">pmr::monotonic_buffer_resource <span class="title">mem_resource</span><span class="params">(buffer.data(), buffer.size())</span></span>;</span><br><span class="line">    std::<span class="function">pmr::list&lt;<span class="type">int</span>&gt; <span class="title">list</span><span class="params">({<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span> , <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>}, &amp;mem_resource)</span></span>;</span><br><span class="line">    benchmark::<span class="built_in">DoNotOptimize</span>(list);</span><br><span class="line">  }</span><br><span class="line">}</span><br><span class="line"><span class="comment">// Register the function as a benchmark</span></span><br><span class="line"><span class="built_in">BENCHMARK</span>(PmrList);</span><br></pre></td></tr></table></figure></li>
+<li>在這個benchmark裡頭，我們分別在兩個測項內建構一個有10個int的list物件
+<ul>
+<li>差別在於一個是pmr::list另一個是一般常見的list</li>
+<li>結果效能就有了天翻地覆的差異，How?</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="容器與動態記憶體配置">容器與動態記憶體配置</h2>
+<ul>
+<li>眾所周知，C++所提供的容器除了std::array以外，那些不用預先告知長度的容器在面對內部物件不斷增多的狀況時，就會透過operator
+new來向作業系統要一塊位於heap的記憶體資源
+<ul>
+<li>理所當然的，刪去一個物件時就會使用operator
+delete來歸還記憶體資源</li>
+</ul></li>
+<li>老師有講過，dynamic allocation是system call對吧?會有overhead的......
+<ul>
+<li>可想而知上面的regular list耗費在allocation上的時間有多少</li>
+</ul></li>
+<li>那我們可不可以不要做dynamic allocation?
+<ul>
+<li>還真的可以</li>
+</ul></li>
+</ul>
+<h2 id="我們的詭計pmr">我們的詭計，PMR</h2>
+<ul>
+<li>我們現在知道問題在於我們花了太多時間在heap
+allocation上，所以我們的目標就是<strong>不要那樣做</strong>
+<ul>
+<li>假設我們在stack上建立一塊足夠大的buffer，嗯......我指的是<code>std::array&lt;byte&gt;</code></li>
+<li>要是我能夠讓容器裡頭的new跟delete都在這塊buffer上操作那該有多好?</li>
+<li>這正是PMR的用途了，我們來看一下<code>PmrList()</code>做了啥?
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">std::array&lt;std::byte, 1024&gt; buffer;</span><br><span class="line">std::<span class="function">pmr::monotonic_buffer_resource <span class="title">mem_resource</span><span class="params">(buffer.data(), buffer.size())</span></span>;</span><br><span class="line">std::<span class="function">pmr::list&lt;<span class="type">int</span>&gt; <span class="title">list</span><span class="params">({<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span> , <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>}, &amp;mem_resource)</span></span>;</span><br></pre></td></tr></table></figure>
+在除去了benchmark相關的code後，實際上與pmr相關的部分如上，我們一行一行來看</li>
+<li>我們建立了一個長度為1024*sizeof(byte)的local buffer
+<ul>
+<li>因為她就在我們的stack上，所以叫她local buffer</li>
+</ul></li>
+<li>我們將這塊buffer交給monotonic_buffer_resource管理，現在mem_resource就如同遙控器一般，誰拿著他誰就能在這塊buffer上alloc
+&amp; dealloc記憶體資源</li>
+<li>我們把這個遙控器交給<code>std::pmr::list&lt;int&gt;</code>，讓他能夠把內部物件配置到local
+buffer</li>
+</ul></li>
+<li>現在只要物件沒有超過local
+buffer的大小，基本上我們就可以在沒有動態配置記憶體的狀態下操作容器了
+<ul>
+<li>我們在quick benchmark上看到的效能差距也正來自於這裡</li>
+</ul></li>
+</ul>
+<h2 id="monotonic_buffer_resource到底幹了啥">monotonic_buffer_resource到底幹了啥?</h2>
+<ul>
+<li>很顯然的，關於monotonic_buffer_resource，我們對他的了解依然不夠透徹，他到底做了啥?</li>
+<li>我們用另外一個<a target="_blank" rel="noopener" href="https://godbolt.org/z/7fTGbbYnY">例子</a>來分析:
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">growing_resources</span><span class="params">()</span> </span>{</span><br><span class="line">  std::array&lt;std::<span class="type">uint8_t</span>, 16&gt; buffer{};</span><br><span class="line">  std::<span class="function">pmr::monotonic_buffer_resource <span class="title">mem_resource</span><span class="params">(buffer.data(),</span></span></span><br><span class="line"><span class="params"><span class="function">                                                   buffer.size())</span></span>;</span><br><span class="line">  std::<span class="function">pmr::vector&lt;std::<span class="type">uint8_t</span>&gt; <span class="title">vec1</span><span class="params">(&amp;mem_resource)</span></span>;</span><br><span class="line">  vec1.<span class="built_in">push_back</span>(<span class="number">1</span>);</span><br><span class="line">  <span class="built_in">print_buffer</span>(<span class="string">"1"</span>, buffer, vec1);</span><br><span class="line">  vec1.<span class="built_in">push_back</span>(<span class="number">2</span>);</span><br><span class="line">  <span class="built_in">print_buffer</span>(<span class="string">"2"</span>, buffer, vec1);</span><br><span class="line">  vec1.<span class="built_in">push_back</span>(<span class="number">3</span>);</span><br><span class="line">  <span class="built_in">print_buffer</span>(<span class="string">"3"</span>, buffer, vec1);</span><br><span class="line">  vec1.<span class="built_in">push_back</span>(<span class="number">4</span>);</span><br><span class="line">  <span class="built_in">print_buffer</span>(<span class="string">"4"</span>, buffer, vec1);</span><br><span class="line">  vec1.<span class="built_in">push_back</span>(<span class="number">5</span>);</span><br><span class="line">  <span class="built_in">print_buffer</span>(<span class="string">"5"</span>, buffer, vec1);</span><br><span class="line">}</span><br></pre></td></tr></table></figure></li>
+<li>我們仔細觀察一下他的output，會發現一件很有意思的事情
+<ul>
+<li>我們知道此vector背後的記憶體空間已經不在heap上，而是在我們宣告在stack上的buffer中，但我們每push_back一個元素進去時，buffer內的狀態似乎不太對勁?
+<ul>
+<li>push_back(1) -&gt; 1, 0, 0, ......</li>
+<li>push_back(2) -&gt; 1, 1, 2, ...... (?)</li>
+<li>push_back(3) -&gt; 1, 1, 2, 1, 2, 3, 0 ......</li>
+<li>push_back(4) -&gt; 1, 1, 2, 1, 2, 3, 4, 0 ...... (!?)</li>
+</ul></li>
+<li>我們所預期的內容(1, 2, 3, 4,
+...)，並沒有如我們所預期的出現，這牽涉到兩個問題
+<ul>
+<li>vector的capacity
+<ul>
+<li>vector這個容器具有提前預留一塊空間備用的功能，跟list來一個要一個不同，這個提前要多少可以透過vector.capacity()得知，我們可以看一下每次呼叫push_back()之前的capacity
+<ul>
+<li>capacity: 0 -&gt; push_back(1) -&gt; [1], 0, 0, ......</li>
+<li>capacity: 1 -&gt; push_back(2) -&gt; 1, [1, 2], ......</li>
+<li>capacity: 2 -&gt; push_back(3) -&gt; 1, 1, 2, [1, 2, 3, 0]
+......</li>
+<li>capacity: 4 -&gt; push_back(4) -&gt; 1, 1, 2, [1, 2, 3, 4], 0
+......</li>
+</ul></li>
+<li>如果當前的元素個數超過的capacity，則vector會向他的allocator(在這裡會是pmr)要一塊更大的記憶體空間，一般來說是2的次方，實際上要看實作</li>
+<li>因為我們給了<strong>帶有local
+buffer的</strong><code>monotonic_buffer_resource</code>，所以當超過capacity時，pmr::vector就會往local
+buffer要一塊更大的空間
+<ul>
+<li>關鍵是，沒有動用到dynamic allocation</li>
+</ul></li>
+</ul></li>
+<li>另外一點是，我們之所以會在buffer內看到push_back()之前的容器狀態殘留在buffer內，是因為<code>monotonic_buffer_resource</code>對於dealloc行為的特性所致，我們來看一下<a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/memory/monotonic_buffer_resource">cppreference</a>
+<ul>
+<li>直奔重點，<code>monotonic_buffer_resource</code>的do_deallocate是no
+op，也就是啥也不幹，真正的記憶體釋放只會發生在他的destructor裏頭
+<ul>
+<li>真正意義上的帶著進棺材</li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li>這種特殊的記憶體分配法有另一個特殊的名字
+<ul>
+<li><a target="_blank" rel="noopener" href="https://docs.rs/bumpalo/latest/bumpalo/">Bump
+Allocator</a></li>
+<li>由於Bump
+allocator容易造成空間浪費(尤其是用於vector的情況下)，若能預先調整capacity的話就可以減輕這個副作用帶來的影響
+<ul>
+<li>我指的就是<code>vector.reserve(n)</code>，在開始插入元素之前先行將capacity調整到一個合適的大小</li>
+</ul></li>
+</ul></li>
+<li>OK，所以我們來做個整理，<code>monotonic_buffer_resource</code>特殊的地方有:
+<ul>
+<li>他不會在生命週期內釋放任何記憶體資源，唯一釋放資源的時機就是解構時
+<ul>
+<li>省去了deallocation的時間</li>
+<li>但這也同時意味著他並<strong>不適合</strong>用於需要頻繁新增、刪除元素的場景</li>
+</ul></li>
+<li>他可接受一個外部的buffer作為記憶體資源
+<ul>
+<li>省去了dynamic allocation的時間</li>
+<li>萬一我們預先準備的buffer爆了，或者我們根本沒給，那還能動嗎?
+<ul>
+<li>我們還漏了一個東西沒有講: <strong>upstream_resource</strong> ##
+upstream_resource</li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li>upstream_resource對於任何memory_resource(好比說monotonic)就如同水流的上游一般，當我這一個層級的memory_resource耗盡時，就會透過upstream_resource再要一塊
+<ul>
+<li>大部分預設的行為，upstream_resource會是一個<code>new_delete_resource</code>
+<ul>
+<li>也就是說回歸普通的heap allocation了</li>
+</ul></li>
+<li>當然，如果你覺得記憶體資源耗盡是一個從設計上來看不應該發生的錯誤，一旦發生就必須拋出異常，那麼你該把upstream_resource設為<code>null_memory_resource</code>，請見此範例
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">null_resources</span><span class="params">()</span> </span>{</span><br><span class="line">  std::array&lt;std::<span class="type">uint8_t</span>, 4&gt; buffer{};</span><br><span class="line">  std::<span class="function">pmr::monotonic_buffer_resource <span class="title">mem_resource</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">      buffer.data(),</span></span></span><br><span class="line"><span class="params"><span class="function">      buffer.size(), </span></span></span><br><span class="line"><span class="params"><span class="function">      std::pmr::null_memory_resource())</span></span>;</span><br><span class="line">    </span><br><span class="line">  std::<span class="function">pmr::vector&lt;std::<span class="type">uint8_t</span>&gt; <span class="title">vec1</span><span class="params">(&amp;mem_resource)</span></span>;</span><br><span class="line">  vec1.<span class="built_in">push_back</span>(<span class="number">1</span>);</span><br><span class="line">  <span class="built_in">print_buffer</span>(<span class="string">"1"</span>, buffer, vec1);</span><br><span class="line">  vec1.<span class="built_in">push_back</span>(<span class="number">2</span>);</span><br><span class="line">  <span class="built_in">print_buffer</span>(<span class="string">"2"</span>, buffer, vec1);</span><br><span class="line">  vec1.<span class="built_in">push_back</span>(<span class="number">3</span>);</span><br><span class="line">  <span class="built_in">print_buffer</span>(<span class="string">"3"</span>, buffer, vec1);</span><br><span class="line">  vec1.<span class="built_in">push_back</span>(<span class="number">4</span>);</span><br><span class="line">  <span class="built_in">print_buffer</span>(<span class="string">"4"</span>, buffer, vec1);</span><br><span class="line">  vec1.<span class="built_in">push_back</span>(<span class="number">5</span>);</span><br><span class="line">  <span class="built_in">print_buffer</span>(<span class="string">"5"</span>, buffer, vec1);</span><br><span class="line">}</span><br></pre></td></tr></table></figure></li>
+<li>我們刻意地把local
+buffer縮到很小，然後再將mem_resource的upstream_resource設為<code>null_memory_resource</code>(constructor
+#6)
+<ul>
+<li>其執行結果會在空間耗盡時直接拋出例外: <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">terminate called after throwing an instance of 'std::bad_alloc'what():  std::bad_alloc</span><br></pre></td></tr></table></figure></li>
+</ul></li>
+<li>而倘若我們把<code>null_memory_resource</code>換成<code>new_delete_resource</code>，則在local
+buffer耗盡之後，所有原本的元素會被複製到經由operator
+new所分配的記憶體資源上
+<ul>
+<li>也就是說，vector要求多少capacity，就new一塊滿足大小要求的memory出來，然後把原本就有的元素丟上去，再放入被push_back的元素</li>
+<li>我們來看一下上面的null_resources()，把null換成new_delete之後會發生什麼事
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">===============    1     ==============</span><br><span class="line">Buffer Address Start: 0x7ffc73c09d6c</span><br><span class="line">vector.data(): 0x7ffc73c09d6c, vector.size(): 1, vector.capacity(): 1</span><br><span class="line"> Item Address: 0x7ffc73c09d6c</span><br><span class="line"></span><br><span class="line">===============    2     ==============</span><br><span class="line">Buffer Address Start: 0x7ffc73c09d6c</span><br><span class="line">vector.data(): 0x7ffc73c09d6d, vector.size(): 2, vector.capacity(): 2</span><br><span class="line"> Item Address: 0x7ffc73c09d6d</span><br><span class="line"> Item Address: 0x7ffc73c09d6e</span><br><span class="line"></span><br><span class="line">===============    3     ==============</span><br><span class="line">Buffer Address Start: 0x7ffc73c09d6c</span><br><span class="line">vector.data(): 0x205fec0, vector.size(): 3, vector.capacity(): 4</span><br><span class="line"> Item Address: 0x205fec0</span><br><span class="line"> Item Address: 0x205fec1</span><br><span class="line"> Item Address: 0x205fec2</span><br><span class="line"></span><br><span class="line">===============    4     ==============</span><br><span class="line">Buffer Address Start: 0x7ffc73c09d6c</span><br><span class="line">vector.data(): 0x205fec0, vector.size(): 4, vector.capacity(): 4</span><br><span class="line"> Item Address: 0x205fec0</span><br><span class="line"> Item Address: 0x205fec1</span><br><span class="line"> Item Address: 0x205fec2</span><br><span class="line"> Item Address: 0x205fec3</span><br><span class="line"></span><br><span class="line">===============    5     ==============</span><br><span class="line">Buffer Address Start: 0x7ffc73c09d6c</span><br><span class="line">vector.data(): 0x205fec4, vector.size(): 5, vector.capacity(): 8</span><br><span class="line"> Item Address: 0x205fec4</span><br><span class="line"> Item Address: 0x205fec5</span><br><span class="line"> Item Address: 0x205fec6</span><br><span class="line"> Item Address: 0x205fec7</span><br><span class="line"> Item Address: 0x205fec8</span><br></pre></td></tr></table></figure></li>
+<li>在push_back(3)的時候發生了空間不足，因此mem_resource向他的upstream要了一塊記憶體當作新空間
+<ul>
+<li>從vector.data()可以看出來空間已經跑去heap了(因為位置很低)</li>
+<li>看到這裡你就會發現local buffer等同於是廢了</li>
+</ul></li>
+<li>在往後看就可以看出，這個vector已經退化成一個普通的vector了
+<ul>
+<li>自從我們耗盡了原本的local
+buffer之後，每次超過capacity，vector都會要一塊基於2的n次方計算出來的空間，然後把原先的元素複製過去
+<ul>
+<li>這跟原本的vector有啥不同啊?</li>
+</ul></li>
+</ul></li>
+<li>因此結論就是，除非你知道你在幹嘛，否則把upstream_resource設為null_memory_resource會是一個比較好的選擇</li>
+</ul></li>
+</ul></li>
+</ul>
+<h2 id="小結">小結</h2>
+<ul>
+<li>在本篇文章中，我們簡單的介紹了PMR的基本原理，以及monotonic_buffer_resource的特性</li>
+<li>另外我們也提及了當資源耗盡時，兩種可行的upstream_resource
+<ul>
+<li>null_memory_resource</li>
+<li>new_delete_resource</li>
+</ul></li>
+<li>我們在之後的系列文章中會接著介紹更加複雜的PMR操作，以及如何設計一個支援PMR的class</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>0rzgg
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="https://ggorz10227216.github.io/cpp-pmr-1/" title="C++ Polymorphic allocator，花式記憶體管理 (一)">https://ggorz10227216.github.io/cpp-pmr-1/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/c/" rel="tag"># c++</a>
+              <a href="/tags/cpp-weekly-note/" rel="tag"># cpp weekly note</a>
+              <a href="/tags/polymorphic-allocator/" rel="tag"># polymorphic_allocator</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/compile-time-string-gen/" rel="prev" title="The `constexpr` Problem That Took Me 5 Years To Fix!">
+      <i class="fa fa-chevron-left"></i> The `constexpr` Problem That Took Me 5 Years To Fix!
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/cpp-pmr-2/" rel="next" title="C++ Polymorphic allocator，花式記憶體管理 (二)">
+      C++ Polymorphic allocator，花式記憶體管理 (二) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%80%8D%E7%9A%84%E5%85%8D%E8%B2%BB%E6%80%A7%E8%83%BD%E6%8F%90%E5%8D%87%E7%9C%9F%E7%9A%84%E5%81%87%E7%9A%84"><span class="nav-number">1.</span> <span class="nav-text">3.5倍的免費性能提升，真的假的?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%B9%E5%99%A8%E8%88%87%E5%8B%95%E6%85%8B%E8%A8%98%E6%86%B6%E9%AB%94%E9%85%8D%E7%BD%AE"><span class="nav-number">2.</span> <span class="nav-text">容器與動態記憶體配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%91%E5%80%91%E7%9A%84%E8%A9%AD%E8%A8%88pmr"><span class="nav-number">3.</span> <span class="nav-text">我們的詭計，PMR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#monotonic_buffer_resource%E5%88%B0%E5%BA%95%E5%B9%B9%E4%BA%86%E5%95%A5"><span class="nav-number">4.</span> <span class="nav-text">monotonic_buffer_resource到底幹了啥?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%B5%90"><span class="nav-number">5.</span> <span class="nav-text">小結</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="0rzgg"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">0rzgg</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">0rzgg</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
